@@ -20,13 +20,17 @@ module CouchDB
     
     def uri
       "#{server.uri}/#{name}"
-    end  
+    end
+    
+    def ==( other_db ) 
+      other_db.is_a?(Database) && other_db.uri == uri
+    end    
     
     def save( swallow_exception=true )
       begin
         CouchDB.put( uri )
-      rescue Exception => e # catch database already exists errors ... 
-        unless e.class == RequestFailed && e.message.match(/412/)
+      rescue Exception => e  
+        unless e.message.match(/412/) # ignore database already exists errors ...
           if swallow_exception
             return false
           else
@@ -119,9 +123,14 @@ module CouchDB
       }
       data.merge!('continuous' => true) if continuous
       CouchDB.post( "#{server.uri}/_replicate/", data )  
-    end
+    end 
     
-    def compact
+    def changes( since=nil)
+      since_params = "?since=#{since.to_i}" if since
+      CouchDB.get( "#{uri}/_changes#{since_params}")
+    end  
+    
+    def compact!
       CouchDB.post( "#{uri}/_compact")
     end       
     

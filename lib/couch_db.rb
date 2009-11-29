@@ -27,5 +27,6 @@ require dir + "/couch_db/config"
 require dir + "/couch_db/helpers"
 require dir + "/couch_db/server"
 require dir + "/couch_db/database"
+require dir + "/couch_db/document"
 
        

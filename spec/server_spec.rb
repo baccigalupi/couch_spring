@@ -22,6 +22,10 @@ describe Server do
       server = Server.new(:port => 5432)
       server.uri.should == "http://127.0.0.1:5432"
     end
+    
+    it 'should have a default uuid limit' do
+      @server.uuid_limit.should == 1000
+    end  
   end 
   
   it 'should be equal if the uri is the same' do
@@ -81,8 +85,10 @@ describe Server do
   
   describe 'managing databases' do
     before do
+      @db = CouchDB::Database.new
+      @db.delete
       @server.database_names.should_not include('ruby')
-      @db = CouchDB::Database.create
+      @db.save
     end
     
     after do

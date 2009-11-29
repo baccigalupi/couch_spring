@@ -6,7 +6,7 @@ module CouchDB
       opts = Gnash.new(opts) unless opts.empty?
       self.domain =           opts[:domain] ? CGI.escape(opts[:domain]) : '127.0.0.1'
       self.port =             opts[:port] ||    '5984'
-      self.uuid_limit =       opts[:uuid_limit].to_i
+      self.uuid_limit =       (opts[:uuid_limit] || 1000).to_i
     end 
     
     def uri

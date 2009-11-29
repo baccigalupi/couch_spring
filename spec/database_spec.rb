@@ -10,6 +10,16 @@ describe Database do
     CouchDB.delete( @db.uri ) rescue nil
   end
   
+  describe 'equality' do
+    it 'should be == when the uris are the same' do 
+      @db.should == Database.new(@opts)
+    end
+  
+    it 'should not be == to a non-database object' do 
+      @db.should_not == nil
+    end  
+  end    
+  
   describe 'initialization' do
     describe 'name' do
       it 'should not require name for initialization' do
@@ -192,12 +202,20 @@ describe Database do
     end
   end      
   
-  describe 'compaction' do  
-    it 'should compact a database' do
-      CouchDB.should_receive(:post).with( "#{@db.uri}/_compact" )
-      @db.compact
-    end  
+  it 'should compact! a database' do
+    CouchDB.should_receive(:post).with( "#{@db.uri}/_compact" )
+    @db.compact!
+  end
+  
+  it 'should report changes' do
+    CouchDB.should_receive(:get).with( "#{@db.uri}/_changes").and_return({})
+    @db.changes
   end 
+  
+  it 'should report changes since a given sequence' do
+    CouchDB.should_receive(:get).with( "#{@db.uri}/_changes?since=14").and_return({})
+    @db.changes(14)
+  end     
   
   describe 'replication' do
     it 'should replicate on the same server when provided a database name' do
@@ -248,11 +266,15 @@ describe Database do
   end         
     
   describe 'document managment' do 
-    it 'should return all documents'
+    it 'should return all documents' do
+    end  
+    
     describe 'bulk operations' do 
-      it 'should bulk save'
+      it 'should save'
+      it 'should update'
+      it 'should be smart enough to mix saves with updates without effort'
       it 'should bulk delete'
-      it 'should bulk update ??'
+      it 'should bulk save, update and delete in a single request'
     end 
   end 
   
