@@ -1,6 +1,8 @@
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
-require 'couchdb_core'
+require 'rubygems'
+require 'json'
+require 'couch_db'
 require 'spec'
 require 'spec/autorun'
 

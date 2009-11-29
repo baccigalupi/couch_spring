@@ -1,6 +1,6 @@
-= couchdb_core
+= couch_db
 
-Description goes here.
+The couch_db or CouchDB gem is a narrow wrapper for CouchDB database API. It aims to be the foundation for Aqua, CouchRest and other CouchDB Document abstractions.
 
 == Note on Patches/Pull Requests
  
@@ -14,4 +14,4 @@ Description goes here.
 
 == Copyright
 
-Copyright (c) 2009 'Kane. See LICENSE for details.
+Copyright (c) 2009 Kane Baccigalupi. See LICENSE for details.

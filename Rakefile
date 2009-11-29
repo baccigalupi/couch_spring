@@ -4,12 +4,12 @@ require 'rake'
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
-    gem.name = "couchdb_core"
-    gem.summary = %Q{TODO: one-line summary of your gem}
-    gem.description = %Q{TODO: longer description of your gem}
+    gem.name = "couch_db"
+    gem.summary = %Q{A slim CouchDB API wrapper}
+    gem.description = %Q{This is a close to the API wrapper for CouchDB that aims to be the foundation for Aqua, CouchRest and other CouchDB Document abstractions.}
     gem.email = "baccigalupi@gmail.com"
-    gem.homepage = "http://github.com/baccigalupi/couchdb_core"
-    gem.authors = ["'Kane"]
+    gem.homepage = "http://github.com/baccigalupi/couchdb"
+    gem.authors = ["Kane Baccigalupi"]
     gem.add_development_dependency "rspec", ">= 1.2.9"
     gem.add_development_dependency "yard", ">= 0"
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
