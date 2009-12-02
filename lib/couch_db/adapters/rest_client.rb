@@ -1,9 +1,9 @@
 require 'rest_client'
 
 module RestClientAdapter
-  def self.convert_exception(&blk)
+  def self.process_result(&blk)
     begin
-      yield
+      JSON.parse( yield )
     rescue Exception => e 
       ending = e.class.to_s.match(/[a-z0-9_]*\z/i)
       if e.message.match(/409\z/)
@@ -19,32 +19,40 @@ module RestClientAdapter
     end    
   end  
   
-  def self.get(uri, headers={})
-    convert_exception do 
-      RestClient.get(uri, headers)
+  def self.get(uri, headers={}, streamable=false) 
+    begin
+      process_result do 
+        RestClient.get(uri, headers)
+      end 
+    rescue Exception => e 
+      if streamable
+        response
+      else
+        raise e
+      end    
     end    
   end
 
   def self.post(uri, hash, headers={})
-    convert_exception do
+    process_result do
       RestClient.post(uri, hash, headers)
     end  
   end
 
   def self.put(uri, hash, headers={})
-    convert_exception do
+    process_result do
       RestClient.put(uri, hash, headers)
     end  
   end
 
   def self.delete(uri, headers={})
-    convert_exception do 
+    process_result do 
       RestClient.delete(uri, headers)
     end  
   end
 
   def self.copy(uri, headers)
-    convert_exception do 
+    process_result do 
       RestClient::Request.execute(  :method   => :copy,
                                     :url      => uri,
                                     :headers  => headers) 
