@@ -90,8 +90,8 @@ describe Database do
 
   describe 'save' do
     it 'should assure that a database instance has a database on the server' do
-      lambda{ CouchDB.get( @db.uri ) }.should raise_error
-      @db.save
+      lambda{ CouchDB.get( @db.uri ) }.should raise_error 
+      @db.save.should_not == false
       lambda{ CouchDB.get( @db.uri ) }.should_not raise_error
     end
     
@@ -117,9 +117,9 @@ describe Database do
     end
     
     it 'should not return false if the database already exists' do
-      db = Database.create(@opts)
-      db = Database.create(@opts)
-      db.should_not be( false ) 
+      db = Database.create!(@opts)
+      db = Database.create!(@opts)
+      db.should_not == false 
     end
   
     it 'should return false if an HTTP error occurs' do

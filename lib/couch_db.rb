@@ -19,7 +19,7 @@ module CouchDB
   class RequestFailed         < IOError; end
   class RequestTimeout        < IOError; end
   class ServerBrokeConnection < IOError; end
-  class Conflict              < ArgumentError; end  
+  class Conflict              < IOError; end  
 end  
 
 # CouchDB extensions and sub-modules/classes

@@ -30,7 +30,9 @@ module CouchDB
       begin
         CouchDB.put( uri )
       rescue Exception => e  
-        unless e.message.match(/412/) # ignore database already exists errors ...
+        if e.message.match(/412/) # ignore database already exists errors ...
+          
+        else
           if swallow_exception
             return false
           else
@@ -121,7 +123,7 @@ module CouchDB
         'source' => self.uri,
         'target' => target.uri
       }
-      data.merge!('continuous' => true) if continuous
+      data.merge!('continuous' => true) if continuous 
       CouchDB.post( "#{server.uri}/_replicate/", data )  
     end 
     

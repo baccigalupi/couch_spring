@@ -33,13 +33,15 @@ module RestClientAdapter
     end    
   end
 
-  def self.post(uri, hash, headers={})
+  def self.post(uri, hash, headers={}) 
+    hash = hash.to_json if hash
     process_result do
       RestClient.post(uri, hash, headers)
     end  
   end
 
   def self.put(uri, hash, headers={})
+    hash = hash.to_json if hash 
     process_result do
       RestClient.put(uri, hash, headers)
     end  

@@ -8,8 +8,7 @@ module RestAPI
   end     
   
   def put(uri, doc = nil)
-    hash = doc.to_json if doc 
-    response = RestAPI.adapter.put( uri, hash ) 
+    response = RestAPI.adapter.put( uri, doc ) 
   end
 
   def get(uri, streamable=false) 
@@ -17,8 +16,7 @@ module RestAPI
   end
 
   def post(uri, doc = nil)
-    hash = doc.to_json if doc 
-    response = RestAPI.adapter.post(uri, hash)
+    response = RestAPI.adapter.post(uri, doc)
   end
 
   def delete(uri) 
