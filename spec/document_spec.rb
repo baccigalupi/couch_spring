@@ -385,7 +385,7 @@ describe Document  do
   
   describe 'class level bulk operations' do
     # These operations will delegate to the classes Database
-    # but will be really convenient on a class basis
+    # but will be really convenient on the document class
   end
   
   describe 'attachments' do
@@ -513,7 +513,5 @@ describe Document  do
       attachment.read.should == data
     end  
   end  
-  
-      
            
 end  

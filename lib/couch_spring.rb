@@ -29,6 +29,7 @@ require dir + "/couch_spring/config"
 require dir + "/couch_spring/helpers"
 require dir + "/couch_spring/server"
 require dir + "/couch_spring/database"
+require dir + "/couch_spring/document_base"
 require dir + "/couch_spring/document"
 require dir + "/couch_spring/attachments"
 
