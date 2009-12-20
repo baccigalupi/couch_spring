@@ -1,7 +1,8 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
-Document = CouchDB::Document unless defined?( Document )
-Database = CouchDB::Database unless defined?( Database )
+Document =    CouchSpring::Document     unless defined?( Document )
+Database =    CouchSpring::Database     unless defined?( Database )
+Attachments = CouchSpring::Attachments  unless defined?( Attachments )
 
 describe Document  do 
   before(:each) do
@@ -139,7 +140,7 @@ describe Document  do
     describe "#save" do
       it 'saving should create a document in the database' do 
         @doc.save
-        lambda{ CouchDB.get( @doc.uri ) }.should_not raise_error
+        lambda{ CouchSpring.get( @doc.uri ) }.should_not raise_error
       end
     
       it 'return itself if it worked' do
@@ -172,7 +173,7 @@ describe Document  do
         it 'should save work' do
           @doc.database = @things_db
           @doc.save!
-          lambda{ CouchDB.get( "#{@things_db.uri}/#{@doc[:_id]}")}.should_not raise_error
+          lambda{ CouchSpring.get( "#{@things_db.uri}/#{@doc[:_id]}")}.should_not raise_error
         end 
       
         it 'should retain database after reload' do
@@ -187,7 +188,7 @@ describe Document  do
     it '#save! should raise an error on failure when creating' do
       @doc.save!
       @doc.delete(:_rev) # should create a conflict
-      lambda{ @doc.save! }.should raise_error( CouchDB::Conflict )
+      lambda{ @doc.save! }.should raise_error( CouchSpring::Conflict )
     end
     
     describe '#create' do 
@@ -205,7 +206,7 @@ describe Document  do
         
       it 'the ! form should raise an error when not successful' do
         @doc.save!
-        lambda{ Document.create!( @params ) }.should raise_error( CouchDB::Conflict )
+        lambda{ Document.create!( @params ) }.should raise_error( CouchSpring::Conflict )
       end  
     end
     
@@ -288,7 +289,7 @@ describe Document  do
       
     it 'should return false when it fails' do 
       @doc.save!
-      CouchDB.should_receive(:delete).and_raise( CouchDB::Conflict )
+      CouchSpring.should_receive(:delete).and_raise( CouchSpring::Conflict )
       @doc.delete.should == false
     end
       
@@ -298,7 +299,7 @@ describe Document  do
       @doc.save!
       @doc[:two] = 2
       @doc.save!  
-      CouchDB.should_receive(:delete).exactly(3).times
+      CouchSpring.should_receive(:delete).exactly(3).times
       @doc.delete!
     end  
   end  
@@ -308,7 +309,7 @@ describe Document  do
       @doc.should be_new
     end 
     
-    it 'should #exist? if it has been saved to CouchDB' do 
+    it 'should #exist? if it has been saved to CouchSpring' do 
       @doc.save!
       @doc.should be_exists
     end
@@ -343,7 +344,7 @@ describe Document  do
         
       it 'should delete earlier versions on save' do 
         @doc.save!
-        lambda{ CouchDB.get( "#{@doc.database.uri}/aqua/my_slug%2Fthaz-right") }.should raise_error
+        lambda{ CouchSpring.get( "#{@doc.database.uri}/aqua/my_slug%2Fthaz-right") }.should raise_error
       end  
     end    
   
@@ -373,7 +374,7 @@ describe Document  do
       pending( 'waiting for someone to need this. Lots of work, no benefit right now.') 
       @doc.save!
       copy = @doc.copy('new_id')
-      lambda{ CouchDB.get( "#{copy.uri}" ) }.should_not raise_error
+      lambda{ CouchSpring.get( "#{copy.uri}" ) }.should_not raise_error
     end
     
     it 'should escape the new document id'
@@ -385,6 +386,134 @@ describe Document  do
   describe 'class level bulk operations' do
     # These operations will delegate to the classes Database
     # but will be really convenient on a class basis
-  end    
+  end
+  
+  describe 'attachments' do
+    before(:each) do
+      @file = File.new( File.dirname( __FILE__ ) + '/attachments/image_attach.png' )
+    end
+       
+    it 'should have an accessor for storing attachments' do 
+      @doc.attachments.should == Attachments.new( @doc )
+    end
+    
+    it 'should add attachments' do 
+      @doc.attachments.add(:my_file, @file)
+      @doc.attachments[:my_file].should == @file
+    end
+    
+    it 'should pack attachments' do
+      @doc.attachments.add(:my_file, @file)
+      @doc.attachments.add("dup.png", @file)
+      pack = @doc.attachments.pack
+      pack.keys.should include('my_file', 'dup.png')
+    end
+    
+    it 'should pack attachments to key _attachments on save' do 
+      @doc.delete! if @doc.exists?
+      @doc.attachments.add(:my_file, @file)
+      @doc.attachments.add("dup.png", @file)
+      pack = @doc.attachments.pack
+      @doc.save!
+      @doc[:_attachments].should == pack
+    end   
+    
+    it 'should pack attachments before save' do 
+      @doc.delete! if @doc.exists?
+      
+      @doc.attachments.add(:my_file, @file)
+      @doc.attachments.add("dup.png", @file)
+      pack = @doc.attachments.pack
+       
+      @doc.attachments.should_receive( :pack ).and_return( pack )
+      @doc.save!
+    end 
+    
+    it 'should pack attachments before save' do 
+      @doc.delete! if @doc.exists?
+      
+      @doc.attachments.add(:my_file, @file)
+      @doc.attachments.add("dup.png", @file)
+      pack = @doc.attachments.pack
+       
+      @doc.attachments.should_receive( :pack ).and_return( pack )
+      @doc.save!
+    end 
+    
+    it 'should be correctly formed in database' do
+      @doc.delete! if @doc.exists?
+      
+      @doc.attachments.add(:my_file, @file)
+      @doc.attachments.add("dup.png", @file)
+      @doc.save!
+      @doc.reload
+      
+      @doc[:_attachments]['dup.png']['content_type'].should == 'image/png'
+      @doc[:_attachments]['dup.png']['stub'].should == true
+      (@doc[:_attachments]['my_file']['length'] > 0).should == true
+      @doc[:_attachments]['my_file']['content_type'].should == 'image/png'
+      @doc[:_attachments]['my_file']['stub'].should == true
+      (@doc[:_attachments]['my_file']['length'] > 0).should == true
+    end 
+    
+    it 'should be retrievable by a url' do
+      @doc.delete! if @doc.exists?
+      
+      @doc.attachments.add(:my_file, @file)
+      @doc.attachments.add("dup.png", @file)
+      @doc.save!
+      
+      url = @doc.attachments.uri_for('dup.png')  
+      CouchSpring.get( url, true )
+      lambda{ CouchSpring.get( url, true ) }.should_not raise_error
+    end  
+    
+    it 'should save and retrieve the data correctly' do 
+      @doc.delete! if @doc.exists?
+      
+      @doc.attachments.add(:my_file, @file)
+      @doc.attachments.add("dup.png", @file)
+      @doc.save!
+      
+      data = @file.read
+      data.should_not be_nil
+      data.should_not be_empty
+      
+      file = @doc.attachments.get!( :my_file ) 
+      file.read.should == data
+    end
+    
+    it 'should save and stream the data correctly' do 
+      @doc.delete! if @doc.exists?
+      
+      @doc.attachments.add(:my_file, @file)
+      @doc.attachments.add("dup.png", @file)
+      @doc.save!
+      
+      data = @file.read
+      data.should_not be_nil
+      data.should_not be_empty
+      
+      streamed = @doc.attachments.get!( :my_file, true ) 
+      streamed.should == data
+    end
+    
+    it 'should have a class accessor for attachments' do 
+      @doc.delete! if @doc.exists?
+      
+      @doc.attachments.add(:my_file, @file)
+      @doc.attachments.add("dup.png", @file)
+      @doc.save! 
+      
+      data = @file.read
+      data.should_not be_nil
+      data.should_not be_empty
+      
+      attachment = Document.attachment( @doc.id, 'my_file' ) 
+      attachment.read.should == data
+    end  
+  end  
+  
+      
            
 end  

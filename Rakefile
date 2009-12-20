@@ -5,8 +5,8 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "couch_db"
-    gem.summary = %Q{A slim CouchDB API wrapper}
-    gem.description = %Q{This is a close to the API wrapper for CouchDB that aims to be the foundation for Aqua, CouchRest and other CouchDB Document abstractions.}
+    gem.summary = %Q{A slim CouchSpring API wrapper}
+    gem.description = %Q{This is a close to the API wrapper for CouchSpring that aims to be the foundation for Aqua, CouchRest and other CouchSpring Document abstractions.}
     gem.email = "baccigalupi@gmail.com"
     gem.homepage = "http://github.com/baccigalupi/couchdb"
     gem.authors = ["Kane Baccigalupi"]

@@ -1,6 +1,6 @@
-= couch_db
+= couch_spring
 
-The couch_db or CouchDB gem is a narrow wrapper for CouchDB database API. It aims to be the foundation for Aqua, CouchRest and other CouchDB Document abstractions.
+The couch_spring gem is a foundation library for CouchDB Ruby projects. It aims to be a reasonably complete Ruby wrapper for the CouchDB API. It aims to be the the underpinning for Aqua, CouchRest and any other CouchDB Document abstractions.
 
 == Note on Patches/Pull Requests
  

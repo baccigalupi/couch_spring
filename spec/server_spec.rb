@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
  
-Server = CouchDB::Server unless defined?( Server )
+Server = CouchSpring::Server unless defined?( Server )
 describe Server do
   before(:each) do
     @server = Server.new
@@ -44,7 +44,7 @@ describe Server do
     it 'should retain a set to prevent collision' do 
       token = @server.next_uuid( 2 ) # initiates a call to the server for 2 uuids
       @server.next_uuid.should_not == token
-      CouchDB.should_receive(:get).and_return({'uuids' => ['my_uuid']}) # because we have run out of uuids on the last request
+      CouchSpring.should_receive(:get).and_return({'uuids' => ['my_uuid']}) # because we have run out of uuids on the last request
       newest_token = @server.next_uuid
       newest_token.should == 'my_uuid' 
     end
@@ -58,34 +58,34 @@ describe Server do
   
   describe 'general managment' do
     it 'should get info' do
-      CouchDB.should_receive(:get).with("#{@server.uri}/" ) 
+      CouchSpring.should_receive(:get).with("#{@server.uri}/" ) 
       @server.info 
     end  
     
     it 'should restart the couchdb server' do
-      CouchDB.should_receive(:post).with("#{@server.uri}/_restart" ) 
+      CouchSpring.should_receive(:post).with("#{@server.uri}/_restart" ) 
       @server.restart!
     end
     
     it 'should retrieve configuration info' do
-      CouchDB.should_receive(:get).with("#{@server.uri}/_config")
+      CouchSpring.should_receive(:get).with("#{@server.uri}/_config")
       @server.config
     end
     
     it 'should retrieve stats' do
-      CouchDB.should_receive(:get).with("#{@server.uri}/_stats")
+      CouchSpring.should_receive(:get).with("#{@server.uri}/_stats")
       @server.stats
     end
     
     it 'should retrieve subsets of stats when passed a group and/or subgroup' do 
-      CouchDB.should_receive(:get).with("#{@server.uri}/_stats/httpd/requests")
+      CouchSpring.should_receive(:get).with("#{@server.uri}/_stats/httpd/requests")
       @server.stats('httpd', 'requests')
     end        
   end
   
   describe 'managing databases' do
     before do
-      @db = CouchDB::Database.new
+      @db = CouchSpring::Database.new
       @db.delete
       @server.database_names.should_not include('ruby')
       @db.save
