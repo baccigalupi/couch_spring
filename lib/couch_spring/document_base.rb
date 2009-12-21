@@ -83,7 +83,13 @@ module CouchSpring
         end  
       end
       @database ||= Database.new(:server => CouchSpring.server)
-    end
+    end 
+    
+    # pseudo-alias for self.database(db) so that it works well in class declarations
+    # and in other coding flows.
+    def self.database=( db )
+      database(db)
+    end  
     
     # Sets default database per instance. Defaults to class's database
     # 
@@ -197,18 +203,31 @@ module CouchSpring
       self.replace( CouchSpring.get( uri ) )
     end   
     
-    # Gets a document from the database based on id
+    # Gets a document from the database based on id. Returns false if not found
     # @param [String] id 
     # @return [Hash] representing the CouchSpring data
     # @api public
-    def self.get( id )
+    def self.get( id, swallow_exception=true )
       resource = begin # this is just in case the developer has already escaped the name
-        CouchSpring.get( "#{database.uri}/#{CGI.escape(id)}" )
-      rescue
-        CouchSpring.get( "#{database.uri}/#{id}" )  
+        CouchSpring.get( uri_for(id) )
+      rescue Exception => e
+        raise e unless swallow_exception
+        return false
       end
       new( resource ) 
-    end   
+    end 
+    
+    def self.uri_for( id ) 
+      "#{database.uri}/#{CGI.escape(id)}"
+    end      
+    
+    # Gets a document from the database based on id. Raises an exception if not found
+    # @param [String] id 
+    # @return [Hash] representing the CouchSpring data
+    # @api public
+    def self.get!( id )
+      get(id, false) 
+    end     
     
     # Returns true if a document exists at the CouchSpring uri for this document. Otherwise returns false
     # @return [true, false]
@@ -274,6 +293,20 @@ module CouchSpring
       delete( nil, true ) 
     end
     
+    # Class level delete when passed an id.
+    def self.delete( id, swallow_exception=true )
+      doc = get(id)
+      if doc
+        swallow_exception ? doc.delete : doc.delete!
+      else 
+        if swallow_exception
+          return false
+        else
+          raise ResourceNotFound, "#{id} not found at #{uri_for(id)}"
+        end
+      end        
+    end  
+    
     # Retrieves an attachment when provided the document id and attachment id, or the combined id 
     #
     # @return [Tempfile]
@@ -290,6 +323,6 @@ module CouchSpring
     # @api public
     def attachments
       @attachments ||= Attachments.new( self )
-    end             
+    end       
   end  
 end  

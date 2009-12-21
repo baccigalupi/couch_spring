@@ -2,6 +2,10 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe CouchSpring do
  describe 'configuration' do
+    after(:all) do
+      CouchSpring.set_http_adapter( 'RestClientAdapter')
+    end
+      
     it 'should not raise an error loading the default adapter' do 
       lambda{ CouchSpring.set_http_adapter }.should_not raise_error
     end

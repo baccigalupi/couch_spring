@@ -41,7 +41,6 @@ module CouchSpring
     end
 
     def self.post(uri, data, headers={}) 
-      puts "post to #{uri} with data #{data.inspect}"
       request do |easy|
         easy.url      = uri 
         easy.method   = :post
@@ -53,7 +52,6 @@ module CouchSpring
     end
 
     def self.put(uri, data, headers={})
-      puts "put to #{uri} with data #{data.inspect}"
       request do |easy|
         easy.url      = uri 
         easy.method   = :put

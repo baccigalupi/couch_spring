@@ -6,7 +6,6 @@ Document =      CouchSpring::Document unless defined?( Document )
 
 describe CouchSpring::Attachments do
   before(:each) do
-    # Aqua::Storage.database.delete_all
     @doc = Document.new(:id => 'attachments_doc')
     @doc.delete!
     @attachments = Attachments.new( @doc )
@@ -100,7 +99,7 @@ describe CouchSpring::Attachments do
     it '#delete! should remove an attachment from the collection and database' do 
       @attachments.add!( :my_file, @file )
       @attachments.delete!( :my_file )
-      lambda{ CouchDB.get( @attachments.uri_for(:my_file) ) }.should raise_error #( Aqua::ObjectNotFound )
+      lambda{ CouchDB.get!( @attachments.uri_for(:my_file) ) }.should raise_error #( Aqua::ObjectNotFound )
     end   
   end
   
