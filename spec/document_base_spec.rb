@@ -9,7 +9,7 @@ describe DocumentBase do
     # delete the database and recreate it
     @db = Database.new
     @db.delete
-    @db.save 
+    DocumentBase.instance_variable_set('@database', nil)
     
     @params = {
       :id => 'my_slug/thaz-right',
@@ -47,18 +47,23 @@ describe DocumentBase do
   end
   
   describe 'database' do 
-    before(:each) do 
+    before(:each) do
       @things_db = Database.new(:name => 'things')
     end
     
     describe 'per class' do 
       it 'should have a default database' do
         DocumentBase.database.should == @db
-      end 
+      end
+      
+      it 'the default database should exist' do
+        DocumentBase.database.exist?.should be_true
+      end   
        
       it 'should have a custom database when specified using a database' do
         DocumentBase.database( @things_db )
         DocumentBase.database.should == @things_db
+        DocumentBase.database.exist?.should be_true
       end 
       
       it 'should have a custom database when passed a string or symbol' do

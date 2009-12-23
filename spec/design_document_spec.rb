@@ -10,8 +10,8 @@ ResultSet = CouchSpring::ResultSet unless defined?( ResultSet )
 describe CouchSpring::DesignDocument do 
   before(:each) do
     @name = 'User'
-    @design = Design.new(:name => @name)
-    @design.delete!
+    @design = Design.new(:name => @name) 
+    @design.delete!       
   end  
     
   describe 'new and create' do

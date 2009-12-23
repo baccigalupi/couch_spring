@@ -77,12 +77,13 @@ module CouchSpring
       if db
         @database = 
         if db.is_a?( Database ) 
+          db.save
           db
         else
-          Database.new(:server => CouchSpring.server, :name => db)
+          Database.create(:server => CouchSpring.server, :name => db) 
         end  
       end
-      @database ||= Database.new(:server => CouchSpring.server)
+      @database ||= Database.create(:server => CouchSpring.server)
     end 
     
     # pseudo-alias for self.database(db) so that it works well in class declarations
@@ -141,6 +142,8 @@ module CouchSpring
     #
     # @api public
     def save( swallow_exception=true )
+      database # make sure the database exists 
+      
       # prep the document
       ensure_id
       self[:_attachments] = attachments.pack unless attachments.empty?
@@ -208,7 +211,7 @@ module CouchSpring
     # @return [Hash] representing the CouchSpring data
     # @api public
     def self.get( id, swallow_exception=true )
-      resource = begin # this is just in case the developer has already escaped the name
+      resource = begin # this is just in case the developer has already escaped the name 
         CouchSpring.get( uri_for(id) )
       rescue Exception => e
         raise e unless swallow_exception
