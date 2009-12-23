@@ -83,8 +83,16 @@ module CouchSpring
           Database.create(:server => CouchSpring.server, :name => db) 
         end  
       end
-      @database ||= Database.create(:server => CouchSpring.server)
-    end 
+      @database ||= default_database
+    end
+    
+    def self.default_database
+      if superclass.respond_to?(:database)
+        superclass.database   
+      else
+        Database.create(:server => CouchSpring.server)
+      end  
+    end   
     
     # pseudo-alias for self.database(db) so that it works well in class declarations
     # and in other coding flows.

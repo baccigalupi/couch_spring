@@ -9,7 +9,7 @@ describe DocumentBase do
     # delete the database and recreate it
     @db = Database.new
     @db.delete
-    DocumentBase.instance_variable_set('@database', nil)
+    DocumentBase.instance_variable_set('@database', nil) # this clears the database
     
     @params = {
       :id => 'my_slug/thaz-right',
@@ -46,7 +46,9 @@ describe DocumentBase do
     end  
   end
   
-  describe 'database' do 
+  describe 'database' do
+    class SubDoc < DocumentBase; end
+     
     before(:each) do
       @things_db = Database.new(:name => 'things')
     end
@@ -74,13 +76,25 @@ describe DocumentBase do
         DocumentBase.database( 'things' )
         DocumentBase.database.should == @things_db
       end  
+      
+      describe 'inheritance' do
+        before(:each) do
+          SubDoc.instance_variable_set('@database', nil) # this clears the database
+        end  
         
-      it 'should have different databases' do
-        DocumentBase.database( @db )
-        class SubDoc < DocumentBase; end
-        SubDoc.database( @things_db )
-        SubDoc.database.should_not == @db  
-      end  
+        it 'should inheirit its default database from the superclass' do
+          DocumentBase.database( @things_db )
+          SubDoc.database.should == @things_db
+        end
+      
+        it 'should have different database from the subclass on customization' do
+          DocumentBase.database.should == @db
+          SubDoc.database( @things_db )
+          SubDoc.database.should_not == @db
+          SubDoc.database.should == @things_db  
+        end  
+      end   
+          
     end 
     
     describe 'per instance' do
