@@ -30,7 +30,7 @@ module CouchSpring
       begin
         CouchSpring.put( uri )
       rescue Exception => e  
-        if e.message.match(/412/) # ignore database already exists errors ...
+        if e.message.match(/Precondition Failed/i) # ignore database already exists errors ...
           
         else
           if swallow_exception
@@ -57,7 +57,8 @@ module CouchSpring
     # @api pubilc
     def self.create( opts={}, swallow_exception=true )
       db = new(opts)
-      db.save( swallow_exception )
+      db = db.save( swallow_exception )
+      db
     end 
     
     # Creates a database representation and PUTs it on the CouchSpring server. 

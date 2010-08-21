@@ -116,15 +116,16 @@ describe Database do
       lambda{ CouchSpring.get db.uri }.should_not raise_error
     end
     
-    it 'should not return false if the database already exists' do
+    it 'should an existing database if there is one' do
+      Database.create!(@opts)
       db = Database.create!(@opts)
-      db = Database.create!(@opts)
-      db.should_not == false 
+      db.should_not == false
+      db.class.should == Database 
     end
   
     it 'should return false if an HTTP error occurs' do
       CouchSpring.should_receive(:put).and_raise( CouchSpring::RequestFailed )
-      db = Database.create(@opts)
+      db = Database.create( @opts )
       db.should == false
     end 
   end

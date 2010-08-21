@@ -26,13 +26,13 @@ describe CouchSpring do
      it 'should default to COUCH_ROOT + "/config/couch.yml"' do
        COUCH_ROOT = File.dirname(__FILE__)
        RAILS_ROOT = '/goober' 
-       CouchSpring.default_yaml_path.should == File.dirname(__FILE__) + '/config/couch.yml'
+       CouchSpring.default_yaml_path.should == File.expand_path( File.dirname(__FILE__) + '/config/couch.yml' )
      end
      
      it 'should default to RAILS_ROOT + "/config/couch.yml"' do
        COUCH_ROOT = nil
        RAILS_ROOT = File.dirname(__FILE__) 
-       CouchSpring.default_yaml_path.should == File.dirname(__FILE__) + '/config/couch.yml'
+       CouchSpring.default_yaml_path.should == File.expand_path( File.dirname(__FILE__) + '/config/couch.yml' )
      end
      
      it 'should not freak out if RAILS_ROOT is not defined' do
