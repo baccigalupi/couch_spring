@@ -88,6 +88,17 @@ module CouchSpring
       @repository || couch_env || rails_env || 'production' 
     end
     
+    def repository( env = default_repository )
+      database_environments[env] if database_environments
+    end
+    
+    def database_url( env = default_repository )
+      if opts = repository( env )
+        credentials = opts['username'] ? "#{opts['username']}:#{opts['password']}@" : ''
+        "#{opts['protocol'] || 'http'}://#{credentials}#{opts['domain']}/#{opts['database']}"
+      end
+    end
+    
     def repository=(env)
       @repository = env
     end      

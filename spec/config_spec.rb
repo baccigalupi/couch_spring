@@ -72,9 +72,9 @@ describe CouchSpring do
      end
    end
    
-   describe 'default_repository' do
+   describe 'default repository' do
      before do
-       RAILS_ROOT = File.dirname(__FILE__) unless defined?( RAILS_ROOT )
+       RAILS_ROOT = File.dirname(__FILE__)
      end 
      
      it 'should default to COUCH_ENV' do
@@ -97,6 +97,45 @@ describe CouchSpring do
      it 'should be customizable' do
        CouchSpring.repository = 'staging'
        CouchSpring.default_repository.should == 'staging'
+     end
+   end
+ 
+   describe 'database url' do
+     before do
+       CouchSpring.repository = 'test'
+       COUCH_ROOT = File.dirname(__FILE__)
+     end
+     
+     it 'should apply the default repository to the database environments' do
+       CouchSpring.database_url.should include 'couch_spring_test'
+     end
+     
+     it 'should default to http protocol' do
+       CouchSpring.database_url.should include 'http://'
+     end
+     
+     it 'should include the protocol from yaml' do
+       CouchSpring.repository = 'production'
+       CouchSpring.database_url.should include 'https://'
+     end
+     
+     it 'should include the username and password when provided' do
+       CouchSpring.repository = 'production'
+       CouchSpring.database_url.should include 'kane:password'
+     end
+     
+     it 'should not include any credential stuff when not provided' do
+       CouchSpring.repository = 'test'
+       CouchSpring.database_url.should_not include '@'
+     end
+     
+     it 'should include an alternate repository env' do 
+       CouchSpring.database_url(:production).should include 'couch_spring_for_go'
+     end
+     
+     it 'should return nil if repository is not found' do
+       RAILS_ROOT = nil
+       CouchSpring.database_url(:production) == nil
      end
    end
  end
