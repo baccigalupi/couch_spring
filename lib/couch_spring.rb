@@ -30,9 +30,9 @@ require dir + "/couch_spring/helpers"
 require dir + "/couch_spring/server"
 require dir + "/couch_spring/database"
 require dir + "/couch_spring/document_base"
-require dir + "/couch_spring/document"
 require dir + "/couch_spring/design_document"
 require dir + "/couch_spring/attachments"
 require dir + "/couch_spring/result_set"
+require dir + "/couch_spring/document"
 
        

@@ -78,7 +78,7 @@ describe CouchSpring::DesignDocument do
         
         it 'should autogenerate a generic map with class constraints' do
           @design << {:name => 'my_docs', :class_constraint => CouchSpring::Document }
-          @design.views[:my_docs][:map].should match(/doc\['type'\] == 'CouchSpring::Document'/)
+          @design.views[:my_docs][:map].should match(/doc\['_class'\] == 'CouchSpring::Document'/)
         end
         
         it 'should autogenerate a generic map and insert preformed class constraints' do

@@ -107,7 +107,7 @@ module CouchSpring
       # @api private
       def build_map( view_name, class_constraint=nil )
         class_constraint = if class_constraint.class == Class
-          " && doc['type'] == '#{class_constraint}'"
+          " && doc['_class'] == '#{class_constraint}'"
         elsif class_constraint.class == String
           " && #{class_constraint}"
         end    

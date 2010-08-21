@@ -1,0 +1,15 @@
+development:
+  domain: localhost:5984
+  database: couch_spring
+  
+test:
+  domain: localhost:5984
+  database: couch_spring_test
+  
+  
+production:
+  protocol: https
+  username: kane
+  password: password
+  domain: rubyghetto.com:5984
+  database: couch_spring_for_go  

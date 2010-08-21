@@ -4,15 +4,20 @@ Document = CouchSpring::Document unless defined?( Document )
 
 describe Document  do 
   describe 'class level bulk operations' do
-    # These operations will delegate to the classes Database
-    # but will be really convenient on the document class
+    class Thing < Document; end 
+    
+    it 'should save the document class to a hidden field' do
+      thing = Thing.create!(:amagig => true)  
+      thing[:_class].should == 'Thing'
+    end 
+      
+    it 'should delete all'
   end  
   
   describe 'design document' do
     it 'design_name should default to name of document class' do
       Document.design_name.should == 'CouchSpring::Document'
-      class Rat < Document
-      end
+      class Rat < Document; end
       Rat.design_name.should == 'Rat'  
     end  
     
@@ -47,5 +52,38 @@ describe Document  do
     end  
   end  
   
-
+  describe 'queries' do 
+    before(:each) do
+      pending 'make query creation delegators'
+      (1..10).each do |num| 
+        Document.create!( :index => num )
+      end
+      @design << :index
+      @design.save!    
+    end
+    
+    describe 'saving queries' do
+      it '#build_query should delegate to the design document\'s #<< method'
+    end
+    
+    describe '#query' do
+      it 'should perform a saved query, if the query index is given'
+      it 'should perform a dynamic query if index not given'
+    end  
+    
+    describe 'dynamic queries (slow)' do
+    end
+    
+    describe 'saved queries (delegation to the design doc)' do  
+      describe 'all' do
+        it 'should have that query' do 
+          design = Thing.design_document 
+          design.views.keys.should include 'all'
+        end 
+        
+        it 'should find all the documents of that type'
+        
+      end
+    end
+  end  
 end  

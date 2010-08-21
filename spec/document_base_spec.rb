@@ -77,7 +77,7 @@ describe DocumentBase do
         DocumentBase.database.should == @things_db
       end  
       
-      describe 'inheritance' do
+      describe 'inheritance' do    
         before(:each) do
           SubDoc.instance_variable_set('@database', nil) # this clears the database
         end  

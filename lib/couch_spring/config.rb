@@ -54,7 +54,43 @@ module CouchSpring
       RestAPI.adapter = "CouchSpring::#{module_name}".constantize
       extend(RestAPI)
       @adapter  # return the adapter 
-    end # set_http_adapter       
+    end # set_http_adapter 
+    
+    def configure_database(path=default_yaml_path)
+      
+    end
+    
+    def database_environments!(path=default_yaml_path)
+      begin
+        data = File.read(path)
+      rescue
+        raise ArgumentError, "Expected to find yaml file at #{path}"
+      end
+      Gnash.new( YAML.load( data ) )
+    end
+    
+    def database_environments(path=default_yaml_path)
+      database_environments!(path) rescue nil
+    end
+    
+    def default_yaml_path
+      couch_root = defined?(COUCH_ROOT) ? COUCH_ROOT : nil
+      rail_root = defined?( RAILS_ROOT ) ? RAILS_ROOT : nil
+      root = couch_root || rail_root
+      default_path = File.dirname(__FILE__) + '/../../../..' 
+      path = (root || default_path) + '/config/couch.yml'
+      File.expand_path( path )
+    end
+    
+    def default_repository
+      couch_env = defined?(COUCH_ENV) ? COUCH_ENV : nil
+      rails_env = defined?(RAILS_ENV) ? RAILS_ENV : nil
+      @repository || couch_env || rails_env || 'production' 
+    end
+    
+    def repository=(env)
+      @repository = env
+    end      
   end # Config 
   
   extend Config  
