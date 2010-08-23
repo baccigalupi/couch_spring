@@ -85,7 +85,6 @@ module CouchSpring
     end
     
     def from_yaml( env = default_repository )
-      puts env
       database_environments[env] if database_environments
     end
     

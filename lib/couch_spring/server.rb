@@ -117,7 +117,9 @@ module CouchSpring
     
     def add_server( name, opts )
       found = (name.to_sym == :default) ? server_from_yaml : server_from_yaml(name)
-      if found
+      if found 
+        opts = (name.to_sym == :default) ? from_yaml : from_yaml(name)
+        Database.create!( :name => opts[:database], :server => found )
         servers[name] = found
       else
         servers[name] = Server.new( opts )
