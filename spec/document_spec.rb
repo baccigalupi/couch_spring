@@ -9,9 +9,27 @@ describe Document  do
     it 'should save the document class to a hidden field' do
       thing = Thing.create!(:amagig => true)  
       thing[:_class].should == 'Thing'
+    end
+    
+    it 'should return a count of all records' do
+      things = [
+        Thing.create!( :foo => 'bar' ),
+        Thing.create!( :bar => 'zar' )
+      ]
+      
+      Thing.count.should == 2
     end 
       
-    it 'should delete all'
+    it 'should delete all' do
+      things = [
+        Thing.create!( :foo => 'bar' ),
+        Thing.create!( :bar => 'zar' )
+      ]
+      
+      Thing.count.should == 2
+      Thing.delete_all
+      Thing.count.should == 0
+    end
   end  
   
   describe 'design document' do

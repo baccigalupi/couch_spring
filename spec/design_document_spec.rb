@@ -116,13 +116,17 @@ describe CouchSpring::DesignDocument do
         design.views.keys.should include( 'my_attribute' )
       end        
     end 
+    end
   
     describe 'query' do
       before(:each) do
-        pending('need a document class level delete all function')
+        Document.database.delete rescue nil
+        Document.database.save!
+        
         (1..10).each do |num| 
           Document.create!( :index => num )
-        end
+        end 
+        
         @design << :index
         @design.save!  
       end
@@ -140,6 +144,11 @@ describe CouchSpring::DesignDocument do
         @docs = @design.query( :index )
         @docs.first.keys.should include( 'index' )
         @docs.first.class.should == Document
+      end
+      
+      it 'should throw an reasonable error if the class corresponding to the _class attribute is not found' do 
+        @design.should_receive(:raw_query).and_return([{'_class' => 'NonExistent'}])
+        lambda{ @design.query( :index ) }.should raise_error( Design::MissingClass, "NonExistent class not found. Maybe this class name has been changed. Or maybe you meant to use the design document's #raw_query method to return hashes instead of objects.")
       end
       
       it 'should limit query results' do
@@ -177,5 +186,5 @@ describe CouchSpring::DesignDocument do
         @docs.first[:index].should == 3
       end                 
     end  
-  end     
+     
 end  

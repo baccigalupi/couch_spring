@@ -1,5 +1,7 @@
 module CouchSpring
   class DesignDocument < DocumentBase
+    class MissingClass < TypeError; end
+    
     # In the design document the name is the same as the id. That way initialization can 
     # include a name parameter, which will change the id, and therefore the address of the 
     # document. This method returns the id.
@@ -51,6 +53,10 @@ module CouchSpring
     # @api public
     def views
       self[:views] ||= Gnash.new
+    end
+    
+    def view_names
+      views.keys
     end 
     
     # Adds or updates a view with the given options
@@ -123,7 +129,7 @@ module CouchSpring
     # group=true Version 0.8.0 and forward
     # group_level=int
     # also, the way this is paginating is inefficient, see couchdb wiki
-    def query( view_name, opts={} )
+    def raw_query( view_name, opts={} )
       opts = Gnash.new( opts ) unless opts.empty? 
       doc_class = opts[:document_class] 
       
@@ -149,7 +155,97 @@ module CouchSpring
       
       result = CouchSpring.get( query_uri )
       opts[:reduced] ? result['rows'].first['value'] : ResultSet.new( result, doc_class )
-    end            
+    end
+    
+    def query( view_name, opts={} )
+      raw_docs = raw_query( view_name, opts )
+      docs = raw_docs.map do |raw_doc|
+        begin
+          klass = raw_doc['_class'].constantize
+        rescue
+          raise MissingClass, "#{raw_doc['_class']} class not found. Maybe this class name has been changed. Or maybe you meant to use the design document's #raw_query method to return hashes instead of objects."
+        end  
+        klass.new(raw_doc)
+      end 
+    end
+    
+    # calculation queries, reductions ...
+    # -----------------------------------
+    
+    # @api private
+    # adds the view if it doesn't exist
+    def reduced_query!( reduce_type, index, opts )
+      view =  "#{index}_#{reduce_type}"
+      reduction = opts.delete(:reduce) 
+      unless view_names.include?( view )
+        add!(
+          :name => view, 
+          :map => views[ index ][:map],
+          :reduce => reduction
+        )
+      end
+      query(view, opts)  
+    end
+      
+    # @api semi-public
+    def count( opts, index = :all )
+      opts = Gnash.new(opts)
+      opts[:reduce] = "
+        function (key, values, rereduce) {
+            return sum(values);
+        }" unless opts[:reduce] 
+      reduced_query!(:count, index, opts )
+    end  
+    
+    # @api semi-public
+    def sum( index, opts={} )
+      opts = Gnash.new(opts)
+      opts[:reduce] = "
+        function (keys, values, rereduce) {
+          var key_values = []
+          keys.forEach( function(key) {
+            key_values[key_values.length] = key[0]
+          });
+          return sum( key_values );
+        }" unless opts[:reduce]
+      reduced_query!(:sum, index, opts)
+    end
+    
+    def average( index, opts={} )
+      sum(index, opts) / count(index, opts).to_f
+    end 
+    
+    alias :avg :average
+    
+    def min( index, opts={} )
+      opts = Gnash.new(opts)
+      opts[:reduce] = "
+        function (keys, values, rereduce) {
+          var key_values = []
+          keys.forEach( function(key) {
+            key_values[key_values.length] = key[0]
+          });
+          return Math.min.apply( Math, key_values ); ;
+        }" unless opts[:reduce]
+      reduced_query!(:min, index, opts)
+    end
+    
+    alias :minimum :min
+    
+    def max( index, opts={} )
+      opts = Gnash.new(opts)
+      opts[:reduce] = "
+        function (keys, values, rereduce) {
+          var key_values = []
+          keys.forEach( function(key) {
+            key_values[key_values.length] = key[0]
+          });
+          return Math.max.apply( Math, key_values ); ;
+        }" unless opts[:reduce]
+      reduced_query!(:max, index, opts)
+    end 
+    
+    alias :maximum :max   
     
   end
 end  

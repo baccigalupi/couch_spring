@@ -1,6 +1,6 @@
 module CouchSpring  
   class DocumentBase < Gnash
-        # Initializes a new storage document. 
+    # Initializes a new storage document. 
     # 
     # @param [Hash, Gnash]
     # @return [Aqua::Storage] a Hash/Gnash with some extras

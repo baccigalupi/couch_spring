@@ -1,16 +1,12 @@
 module CouchSpring
   class Document < DocumentBase 
-    # includes any method not part of design documents:
-    #   queries
-    #   
-    
     def self.design_name
       @design_name ||= self.to_s
     end
     
     def self.design_name=( name )
       @design_name = name
-    end      
+    end
     
     # Finds or creates design document based on 
     # @api semi-private 
