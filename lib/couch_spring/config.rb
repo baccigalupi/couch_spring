@@ -56,10 +56,6 @@ module CouchSpring
       @adapter  # return the adapter 
     end # set_http_adapter 
     
-    def configure_database(path=default_yaml_path)
-      
-    end
-    
     def database_environments!(path=default_yaml_path)
       begin
         data = File.read(path)
@@ -88,16 +84,23 @@ module CouchSpring
       @repository || couch_env || rails_env || 'production' 
     end
     
-    def repository( env = default_repository )
+    def from_yaml( env = default_repository )
+      puts env
       database_environments[env] if database_environments
     end
     
-    def database_url( env = default_repository )
-      if opts = repository( env )
-        credentials = opts['username'] ? "#{opts['username']}:#{opts['password']}@" : ''
-        "#{opts['protocol'] || 'http'}://#{credentials}#{opts['domain']}/#{opts['database']}"
+    def database_from_yaml( env = default_repository )
+      if opts = from_yaml( env )
+        server = server_from_yaml(env)
+        Database.new(:server => server, :name => opts[:database]) if server
       end
-    end
+    end 
+    
+    def server_from_yaml( env = default_repository )
+      if opts = from_yaml( env )
+        server = Server.new(opts)
+      end
+    end 
     
     def repository=(env)
       @repository = env

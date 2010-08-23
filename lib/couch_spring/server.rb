@@ -1,16 +1,32 @@
 module CouchSpring
   class Server
-    attr_accessor :domain, :port, :uuids, :uuid_limit
+    DEFAULT_DOMAIN = "127.0.0.1"
+    DEFAULT_PORT = "5984"
+    DEFAULT_PROTOCOL = 'http'
+    
+    attr_accessor :protocol, :domain, :port, :uuids, :uuid_limit, :username, :password
     
     def initialize(opts={})
       opts = Gnash.new(opts) unless opts.empty?
-      self.domain =           opts[:domain] ? CGI.escape(opts[:domain]) : '127.0.0.1'
-      self.port =             opts[:port] ||    '5984'
+      self.protocol =         opts[:protocol] || DEFAULT_PROTOCOL
+      self.username =         opts[:username] ? CGI.escape(opts[:username]) : nil
+      self.password =         opts[:password] ? CGI.escape(opts[:password]) : nil
+      self.domain =           opts[:domain] ? CGI.escape(opts[:domain]) : nil
+      self.port =             opts[:port]
       self.uuid_limit =       (opts[:uuid_limit] || 1000).to_i
     end 
     
-    def uri
-      "http://#{domain}:#{port}"
+    def uri( reload = false)
+      unless @uri || reload
+        credentials = username ? "#{username}:#{password}@" : nil
+        unless domain
+          self.domain = DEFAULT_DOMAIN
+          self.port ||= DEFAULT_PORT
+        end
+        port = self.port ? ":#{self.port}" : nil
+        @uri = "#{protocol}://#{credentials}#{domain}#{port}"
+      end
+      @uri
     end
     
     def inspect
@@ -89,18 +105,26 @@ module CouchSpring
   
     # Getter/setter for pooling servers
     #
-    # @param [Hash] 
-    # @opts :name The name used to store/retreive the instance 
-    # @opts :server If used, sets the server key to this instance 
-    def server( name = :default, new_server = nil )
+    def server( name = :default, new_server = nil, opts = {} )
       if new_server && new_server.is_a?( Server )
         servers[name] = new_server
-      elsif servers[name] 
-        servers[name]
+      elsif found = servers[name] 
+        found
       else
-        servers[name] = Server.new
+        add_server(name, opts)
       end   
     end
+    
+    def add_server( name, opts )
+      found = (name.to_sym == :default) ? server_from_yaml : server_from_yaml(name)
+      if found
+        servers[name] = found
+      else
+        servers[name] = Server.new( opts )
+      end
+    end
+    
+    
   end # Servers module
   
   extend ServerConfig

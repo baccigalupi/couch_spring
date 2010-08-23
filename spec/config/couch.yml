@@ -1,9 +1,11 @@
 development:
-  domain: localhost:5984
+  domain: localhost
+  port: 5984
   database: couch_spring
   
 test:
-  domain: localhost:5984
+  domain: localhost
+  port: 5984
   database: couch_spring_test
   
   
@@ -11,5 +13,13 @@ production:
   protocol: https
   username: kane
   password: password
-  domain: rubyghetto.com:5984
-  database: couch_spring_for_go  
+  domain: rubyghetto.com
+  port: 5984
+  database: couch_spring_for_go 
+  
+cloudant:
+  protocol: https
+  username: kane
+  password: password
+  domain: kane.cloudant.com
+  database: couch_springy    

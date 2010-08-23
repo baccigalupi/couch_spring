@@ -99,43 +99,58 @@ describe CouchSpring do
        CouchSpring.default_repository.should == 'staging'
      end
    end
- 
-   describe 'database url' do
+   
+   describe 'server from yaml' do
      before do
-       CouchSpring.repository = 'test'
+       RAILS_ROOT = nil
        COUCH_ROOT = File.dirname(__FILE__)
      end
      
-     it 'should apply the default repository to the database environments' do
-       CouchSpring.database_url.should include 'couch_spring_test'
-     end
-     
      it 'should default to http protocol' do
-       CouchSpring.database_url.should include 'http://'
+       CouchSpring.server_from_yaml(:test).protocol.should include 'http'
      end
      
      it 'should include the protocol from yaml' do
-       CouchSpring.repository = 'production'
-       CouchSpring.database_url.should include 'https://'
+       CouchSpring.server_from_yaml(:production).protocol.should include 'https'
      end
      
      it 'should include the username and password when provided' do
-       CouchSpring.repository = 'production'
-       CouchSpring.database_url.should include 'kane:password'
+       server = CouchSpring.server_from_yaml(:production)
+       server.username.should == 'kane'
+       server.password.should == 'password'
      end
      
-     it 'should not include any credential stuff when not provided' do
-       CouchSpring.repository = 'test'
-       CouchSpring.database_url.should_not include '@'
-     end
-     
-     it 'should include an alternate repository env' do 
-       CouchSpring.database_url(:production).should include 'couch_spring_for_go'
+     it 'should use the port if provided' do
+       CouchSpring.server_from_yaml(:test).port.should == 5984
+       CouchSpring.server_from_yaml(:cloudant).port.should == nil
      end
      
      it 'should return nil if repository is not found' do
-       RAILS_ROOT = nil
-       CouchSpring.database_url(:production) == nil
+       COUCH_ROOT = nil              
+       CouchSpring.server_from_yaml(:production) == nil
+     end
+   end
+ 
+   describe 'database url' do
+     before do
+       COUCH_ROOT = File.dirname(__FILE__)
+     end
+     
+     it 'should include the server uri' do
+       CouchSpring.database_from_yaml(:test).server.should == CouchSpring.server_from_yaml(:test)
+     end
+     
+     it 'should apply the default repository to the database environments' do
+       CouchSpring.database_from_yaml(:test).uri.should include 'couch_spring_test'
+     end
+     
+     it 'should include an alternate repository env' do 
+       CouchSpring.database_from_yaml(:production).uri.should include 'couch_spring_for_go'
+     end
+     
+     it 'should return nil if repository is not found' do
+       COUCH_ROOT = nil
+       CouchSpring.database_from_yaml(:production) == nil
      end
    end
  end

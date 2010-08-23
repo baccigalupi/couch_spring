@@ -2,7 +2,14 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
  
 Server = CouchSpring::Server unless defined?( Server )
 describe Server do
-  before(:each) do
+  before :all do
+    CouchSpring.clear_servers
+    CouchSpring.repository = nil
+    COUCH_ENV = nil
+    COUCH_ROOT = nil
+  end
+  
+  before :each do
     @server = Server.new
   end
   
@@ -13,7 +20,7 @@ describe Server do
     
     it 'should have a settable domain' do 
       server = Server.new(:domain => 'newhost.com')
-      server.uri.should == 'http://newhost.com:5984'
+      server.uri.should == 'http://newhost.com'
     end
     
     it 'should have a settable port' do
@@ -25,7 +32,17 @@ describe Server do
     
     it 'should have a default uuid limit' do
       @server.uuid_limit.should == 1000
-    end  
+    end
+    
+    it 'should have settable protocol' do
+      server = Server.new(:protocol => 'https')
+      server.uri.should == "https://127.0.0.1:5984"
+    end 
+    
+    it 'should have credentials if provided' do
+      server = Server.new(:username => 'kane', :password => 'secret')
+      server.uri.should == 'http://kane:secret@127.0.0.1:5984'
+    end 
   end 
   
   it 'should be equal if the uri is the same' do
@@ -85,8 +102,8 @@ describe Server do
   
   describe 'managing databases' do
     before do
-      @db = CouchSpring::Database.new
-      @db.delete
+      @db = CouchSpring::Database.new 
+      @db.delete 
       @server.database_names.should_not include('ruby')
       @db.save
     end
