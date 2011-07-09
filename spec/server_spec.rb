@@ -5,8 +5,10 @@ describe Server do
   before :all do
     CouchSpring.clear_servers
     CouchSpring.repository = nil
-    COUCH_ENV = nil
-    COUCH_ROOT = nil
+    capturing_stderr do
+      COUCH_ENV = nil
+      COUCH_ROOT = nil
+    end  
   end
   
   before :each do
@@ -119,6 +121,5 @@ describe Server do
     it 'should return database instances for all the databases on the server' do 
       @server.databases.select{|db| db.name == 'ruby'}.should_not be_empty
     end  
-  end   
-       
+  end       
 end  

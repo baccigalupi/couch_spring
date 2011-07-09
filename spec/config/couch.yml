@@ -8,7 +8,6 @@ test:
   port: 5984
   database: couch_spring_test
   
-  
 production:
   protocol: https
   username: kane

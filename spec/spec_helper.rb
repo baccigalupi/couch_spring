@@ -6,10 +6,11 @@ require 'json'
 require 'couch_spring'
 
 # Set Adapter here to use with individual test runs 
-# rake spec doesn't use this for whatever reason
 # CouchSpring.set_http_adapter( 'TyphoeusAdapter')
 
 require 'rspec'
+require File.dirname(__FILE__) + "/test_helpers"
 
 RSpec.configure do |config|
+  include TestHelpers
 end
