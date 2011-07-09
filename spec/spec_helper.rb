@@ -9,9 +9,7 @@ require 'couch_spring'
 # rake spec doesn't use this for whatever reason
 # CouchSpring.set_http_adapter( 'TyphoeusAdapter')
 
-require 'spec'
-require 'spec/autorun'
+require 'rspec'
 
-Spec::Runner.configure do |config|
-  
+RSpec.configure do |config|
 end
