@@ -43,6 +43,8 @@ describe CouchSpring::ServerConfig do
     
     it 'should create the database when adding a server from yaml' do
       server = CouchSpring.server( :test )
+      server.databases.should_not be_empty
+      d { server.databases }
       server.databases.select{|db| db.name == 'couch_spring_test'}.should_not be_empty
     end
     

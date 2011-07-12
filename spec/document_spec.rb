@@ -8,10 +8,11 @@ describe Document  do
     
     it 'should save the document class to a hidden field' do
       thing = Thing.create!(:amagig => true)  
-      thing[:_class].should == 'Thing'
+      thing[:class_].should == 'Thing'
     end
     
     it 'should return a count of all records' do
+      d { Thing.database }
       things = [
         Thing.create!( :foo => 'bar' ),
         Thing.create!( :bar => 'zar' )

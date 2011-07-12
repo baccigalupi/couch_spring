@@ -5,13 +5,21 @@ require 'rubygems'
 require 'json'
 require 'couch_spring'
 
-# Set Adapter here to use with individual test runs 
+# Set Adapter here to use with individual test runs
 # rake spec doesn't use this for whatever reason
 # CouchSpring.set_http_adapter( 'TyphoeusAdapter')
 
-require 'spec'
-require 'spec/autorun'
+require 'rspec'
+require 'rspec/autorun'
 
-Spec::Runner.configure do |config|
-  
+# Spec::Runner.configure do |config|
+#
+# end
+
+def read_binary file
+  contents = open(file, "rb") {|io| io.read }
 end
+
+require "wrong/d"
+include Wrong::D
+Wrong.config.color

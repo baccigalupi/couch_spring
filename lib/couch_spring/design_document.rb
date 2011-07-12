@@ -113,7 +113,7 @@ module CouchSpring
       # @api private
       def build_map( view_name, class_constraint=nil )
         class_constraint = if class_constraint.class == Class
-          " && doc['_class'] == '#{class_constraint}'"
+          " && doc['class_'] == '#{class_constraint}'"
         elsif class_constraint.class == String
           " && #{class_constraint}"
         end    
@@ -134,7 +134,7 @@ module CouchSpring
       doc_class = opts[:document_class] 
       
       params = []
-      params << 'include_docs=true' unless (opts[:select] && opts[:select] != 'all')
+      params << 'include_docs=true' unless (opts[:select] && opts[:select] != 'all' || opts[:reduce])
       # TODO: this is according to couchdb really inefficent with large sets of data.
       # A better way would involve, using start and end keys with limit. But this 
       # is a really hard one to figure with jumping around to different pages
@@ -154,16 +154,17 @@ module CouchSpring
       query_uri << params.join('&')
       
       result = CouchSpring.get( query_uri )
-      opts[:reduced] ? result['rows'].first['value'] : ResultSet.new( result, doc_class )
+      d {result}
+      opts[:reduce] ? result['rows'].first['value'] : ResultSet.new( result, doc_class )
     end
     
     def query( view_name, opts={} )
       raw_docs = raw_query( view_name, opts )
       docs = raw_docs.map do |raw_doc|
         begin
-          klass = raw_doc['_class'].constantize
+          klass = raw_doc['class_'].constantize
         rescue
-          raise MissingClass, "#{raw_doc['_class']} class not found. Maybe this class name has been changed. Or maybe you meant to use the design document's #raw_query method to return hashes instead of objects."
+          raise MissingClass, "#{raw_doc['class_']} class not found. Maybe this class name has been changed. Or maybe you meant to use the design document's #raw_query method to return hashes instead of objects."
         end  
         klass.new(raw_doc)
       end 
@@ -176,20 +177,24 @@ module CouchSpring
     # adds the view if it doesn't exist
     def reduced_query!( reduce_type, index, opts )
       view =  "#{index}_#{reduce_type}"
-      reduction = opts.delete(:reduce) 
-      unless view_names.include?( view )
+      reduction = opts[:reduce]
+      # unless view_names.include?( view )
         add!(
           :name => view, 
-          :map => views[ index ][:map],
+          :map => opts[:map] || views[ index ][:map],
           :reduce => reduction
         )
-      end
+      # end
       query(view, opts)  
     end
       
     # @api semi-public
     def count( opts, index = :all )
       opts = Gnash.new(opts)
+      opts[:map] = "
+        function(doc) {
+          emit(doc.id, 1);
+        }"
       opts[:reduce] = "
         function (key, values, rereduce) {
             return sum(values);

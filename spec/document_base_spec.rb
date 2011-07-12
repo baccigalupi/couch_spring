@@ -511,7 +511,7 @@ describe DocumentBase do
       @doc.attachments.add("dup.png", @file)
       @doc.save!
       
-      data = @file.read
+      data = read_binary @file
       data.should_not be_nil
       data.should_not be_empty
       
@@ -526,7 +526,7 @@ describe DocumentBase do
       @doc.attachments.add("dup.png", @file)
       @doc.save!
       
-      data = @file.read
+      data = read_binary @file
       data.should_not be_nil
       data.should_not be_empty
       
@@ -541,7 +541,7 @@ describe DocumentBase do
       @doc.attachments.add("dup.png", @file)
       @doc.save! 
       
-      data = @file.read
+      data = read_binary @file
       data.should_not be_nil
       data.should_not be_empty
       
