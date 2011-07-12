@@ -40,7 +40,15 @@ module CouchSpring
         # GET the welcome message
     def info
       CouchSpring.get "#{uri}/"
+    end
+    
+    def size
+      database_names.size
     end 
+    
+    def empty?
+      size == 0
+    end
     
     def config 
       CouchSpring.get "#{uri}/_config"
@@ -83,7 +91,15 @@ module CouchSpring
         dbs << Database.new( :name => name, :server => self )
       end
       dbs  
-    end  
+    end
+    
+    def database(name)
+      Database.create!(:name => name, :server => self)
+    end
+    
+    def clear!
+      databases.each {|db| db.delete! }
+    end
   end
   
   # configures CouchSpring to hold a number of servers for use in the application
@@ -125,8 +141,6 @@ module CouchSpring
         servers[name] = Server.new( opts )
       end
     end
-    
-    
   end # Servers module
   
   extend ServerConfig

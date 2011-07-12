@@ -7,7 +7,11 @@ describe Document  do
     class Thing < Document; end 
     
     it 'should save the document class to a hidden field' do
-      thing = Thing.create!(:amagig => true)  
+      begin
+        thing = Thing.create!(:amagig => true)
+      rescue Exception => e
+        puts e.message
+      end
       thing[:_class].should == 'Thing'
     end
     

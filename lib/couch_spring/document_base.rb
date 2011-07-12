@@ -156,7 +156,8 @@ module CouchSpring
       ensure_id
       self[:_attachments] = attachments.pack unless attachments.empty?
       
-      begin 
+      begin
+        puts self.inspect 
         result = CouchSpring.put( uri, self )
         if result && result['ok']
           update_version( result )

@@ -29,8 +29,10 @@ module CouchSpring
     #
     # @api private
     def escape( str )
+      str.downcase!
       str.gsub!('::', '__')
-      str.gsub!(/[^a-z0-9\-_]/, '')
+      str.gsub!(/[^a-z0-9\-_$\(\)\+\/]/, '')
+      str.gsub!('/', '%2')
       str
     end  
   end

@@ -13,6 +13,7 @@ describe Server do
   
   before :each do
     @server = Server.new
+    @server.clear!
   end
   
   describe 'initialization' do
@@ -47,12 +48,13 @@ describe Server do
     end 
   end 
   
-  it 'should be equal if the uri is the same' do
-    server = Server.new
-    server.uri.should == @server.uri 
-    server.should == @server
-  end  
-  
+  describe 'equality' do
+    it 'should be equal if the uri is the same' do
+      server = Server.new
+      server.uri.should == @server.uri 
+      server.should == @server
+    end
+  end
   
   describe 'uuids' do
     it 'should have a settable limit' do
@@ -99,7 +101,22 @@ describe Server do
     it 'should retrieve subsets of stats when passed a group and/or subgroup' do 
       CouchSpring.should_receive(:get).with("#{@server.uri}/_stats/httpd/requests")
       @server.stats('httpd', 'requests')
-    end        
+    end
+    
+    it 'should have a size' do
+      @server.database('foo')
+      @server.database('default')
+      @server.database_names.size.should == 2
+      @server.size.should == 2
+    end
+    
+    it 'have an #empty? method that works as expected' do
+      @server.size.should == 0
+      @server.empty?.should == true
+      @server.database('foo')
+      @server.size.should == 1
+      @server.empty?.should == false
+    end
   end
   
   describe 'managing databases' do
@@ -120,6 +137,19 @@ describe Server do
     
     it 'should return database instances for all the databases on the server' do 
       @server.databases.select{|db| db.name == 'ruby'}.should_not be_empty
-    end  
+    end
+    
+    it 'should be able to create a database with itself as the server' do
+      db = @server.database('foo')
+      @server.database_names.should include 'foo'
+      db.server.should == @server
+    end 
+    
+    it '#clear! should delete all databases' do
+      @server.database('foo')
+      @server.database_names.should include 'foo', 'ruby'
+      @server.clear!
+      @server.database_names.should_not include 'foo', 'ruby'
+    end 
   end       
 end  

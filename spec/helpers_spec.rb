@@ -8,16 +8,38 @@ describe CouchSpring do
       end  
     end  
      
-    describe 'escaping names' do 
+    describe 'escaping names' do
       it 'should escape :: module/class separators with a double underscore __' do
-        string = CouchSpring.escape('not::kosher')
-        string.should == 'not__kosher'
+        CouchSpring.escape('not::kosher').should == 'not__kosher'
       end
       
       it 'should remove non alpha-numeric, hyphen, underscores from a string' do 
-        string = CouchSpring.escape('&not_!kosher*%')
-        string.should == 'not_kosher'
-      end        
+        CouchSpring.escape('&not_!kosher*%').should == 'not_kosher'
+      end
+      
+      it 'should downcase names' do
+        CouchSpring.escape('FOO').should == 'foo'
+      end
+      
+      it 'allows underscores' do
+        CouchSpring.escape('foo_bar').should == 'foo_bar'
+      end
+      
+      it 'allows but escapes slashes' do
+        CouchSpring.escape('foo/bar').should == 'foo%2bar'
+      end
+      
+      it 'allows +' do
+        CouchSpring.escape('foo+bar').should == 'foo+bar'
+      end
+      
+      it 'allows - ' do
+        CouchSpring.escape('foo-bar').should == 'foo-bar'
+      end
+      
+      it 'allows parens' do
+        CouchSpring.escape('foo_bar(1)').should == 'foo_bar(1)'
+      end
     end
     
     describe 'paramify_url' do

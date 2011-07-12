@@ -2,6 +2,8 @@ module CouchSpring
   class Database 
     attr_accessor :server, :name
  
+    DEFAULT_NAME = 'ruby'
+ 
     # Builds a CouchSpring database representation from a name. It does not actually create a database on couchdb.
     # It does not ensure that the database actually exists either. Just creates a ruby representation
     # of a ruby database interface.
@@ -11,12 +13,17 @@ module CouchSpring
     # @return [Database] The initialized object
     # 
     # @api public
-    def initialize( opts={})
-      opts = Gnash.new( opts )
+    def initialize( *args )
+      if args.size > 1
+        opts = Gnash.new(args.last)
+        opts[:name] = args.first
+      else
+        opts = Gnash.new(args.last)
+      end
       self.name = CouchSpring.escape( (opts[:name] || 'ruby').to_s )
       server = opts[:server] || CouchSpring.server
       self.server = server.is_a?( Server ) ? server : CouchSpring.server( server )
-    end 
+    end
     
     def uri
       "#{server.uri}/#{name}"
@@ -115,16 +122,25 @@ module CouchSpring
       CouchSpring.delete( uri )
     end
     
-    def replicate( target, continuous=false )
+    
+    # options:
+    # filter => filter_name
+    # query_params => array_of_params
+    # doc_ids => array_of_ids
+    def replicate( target, opts={} )
       if [String, Symbol].include?( target.class )
         target = self.class.new(:name => target, :server => server)
       end
-      target.save 
+      
       data = {
-        'source' => self.uri,
+        'source' => self.name,
         'target' => target.uri
       }
-      data.merge!('continuous' => true) if continuous 
+      data.merge!('continuous' => true)     if opts[:continuous]
+      data.merge!('create_target' => true)  if opts[:create]
+      data.merge!('cancel' => true)         if opts[:cancel]
+      data.merge!('proxy' => opts[:proxy])  if opts[:proxy]
+      
       CouchSpring.post( "#{server.uri}/_replicate/", data )  
     end 
     

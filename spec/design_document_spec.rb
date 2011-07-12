@@ -116,75 +116,87 @@ describe CouchSpring::DesignDocument do
         design.views.keys.should include( 'my_attribute' )
       end        
     end 
-    end
   
-    describe 'query' do
-      before(:each) do
-        Document.database.delete rescue nil
-        Document.database.save!
-        
-        (1..10).each do |num| 
-          Document.create!( :index => num )
-        end 
-        
-        @design << :index
-        @design.save!  
-      end
-         
-      it 'should query by saved view' do
-        lambda{ @design.query( :index ) }.should_not raise_error
+    describe 'default views' do
+      it "should have an :all view with full documents from everything with the _class key"
+    end
+  end
+  
+  describe 'query' do
+    before(:each) do
+      Document.database.delete rescue nil
+      Document.database.save!
+      
+      (1..10).each do |num| 
+        Document.create!( :index => num )
       end 
       
-      it 'should return a number of rows corresponding to all the documents in the query' do
-        @docs = @design.query( :index )
-        @docs.size.should == 10
-      end
-      
-      it 'should return the documents themselves by default' do
-        @docs = @design.query( :index )
-        @docs.first.keys.should include( 'index' )
-        @docs.first.class.should == Document
-      end
-      
-      it 'should throw an reasonable error if the class corresponding to the _class attribute is not found' do 
-        @design.should_receive(:raw_query).and_return([{'_class' => 'NonExistent'}])
-        lambda{ @design.query( :index ) }.should raise_error( Design::MissingClass, "NonExistent class not found. Maybe this class name has been changed. Or maybe you meant to use the design document's #raw_query method to return hashes instead of objects.")
-      end
-      
-      it 'should limit query results' do
-        @docs = @design.query( :index, :limit => 2 )
-        @docs.size.should == 2
-      end
-      
-      it 'should offset query results' do
-        @docs = @design.query( :index, :limit => 2, :offset => 2)
-        @docs.size.should == 2
-        @docs.first[:index].should == 3
-      end
-      
-      it 'should put in descending order' do
-        @docs = @design.query( :index, :order => :desc )
-        @docs.first[:index].should == 10
-      end
-      
-      it 'should select a range' do
-        @docs = @design.query( :index, :range => [2,4])
-        @docs.size.should == 3
-        @docs.first[:index].should == 2
-      end
-      
-      it 'should select a range with descending order' do
-        @docs = @design.query( :index, :range => [2,4], :order => :descending )
-        @docs.size.should == 3
-        @docs.first[:index].should == 4
-        @docs[2][:index].should == 2 
-      end
-      
-      it 'should select by exact key' do 
-        @docs = @design.query( :index, :equals => 3 )
-        @docs.size.should == 1
-        @docs.first[:index].should == 3
-      end                 
-    end  
-     
+      @design << :index
+      @design.save!  
+    end
+       
+    it 'should query by saved view' do
+      lambda{ @design.query( :index ) }.should_not raise_error
+    end 
+    
+    it 'should return a number of rows corresponding to all the documents in the query' do
+      @docs = @design.query( :index )
+      @docs.size.should == 10
+    end
+    
+    it 'should return the documents themselves by default' do
+      @docs = @design.query( :index )
+      @docs.first.keys.should include( 'index' )
+      @docs.first.class.should == Document
+    end
+    
+    it 'should throw an reasonable error if the class corresponding to the _class attribute is not found' do 
+      @design.should_receive(:raw_query).and_return([{'_class' => 'NonExistent'}])
+      lambda{ @design.query( :index ) }.should raise_error( Design::MissingClass, "NonExistent class not found. Maybe this class name has been changed. Or maybe you meant to use the design document's #raw_query method to return hashes instead of objects.")
+    end
+    
+    it 'should limit query results' do
+      @docs = @design.query( :index, :limit => 2 )
+      @docs.size.should == 2
+    end
+    
+    it 'should offset query results' do
+      @docs = @design.query( :index, :limit => 2, :offset => 2)
+      @docs.size.should == 2
+      @docs.first[:index].should == 3
+    end
+    
+    it 'should put in descending order' do
+      @docs = @design.query( :index, :order => :desc )
+      @docs.first[:index].should == 10
+    end
+    
+    it 'should select a range' do
+      @docs = @design.query( :index, :range => [2,4])
+      @docs.size.should == 3
+      @docs.first[:index].should == 2
+    end
+    
+    it 'should select a range with descending order' do
+      @docs = @design.query( :index, :range => [2,4], :order => :descending )
+      @docs.size.should == 3
+      @docs.first[:index].should == 4
+      @docs[2][:index].should == 2 
+    end
+    
+    it 'should select by exact key' do 
+      @docs = @design.query( :index, :equals => 3 )
+      @docs.size.should == 1
+      @docs.first[:index].should == 3
+    end                 
+  end  
+
+  describe 'calculations (reductions)' do
+    it 'reduced_query! should automatically create the view if it does not exist'
+    it 'should count'
+    it 'should sum'
+    it 'should average'
+    it 'should min'
+    it 'should max'
+  end  
 end  
