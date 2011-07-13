@@ -24,19 +24,19 @@ describe CouchSpring do
  describe 'configure the database' do
    describe 'default yaml path' do 
      it 'should default to COUCH_ROOT + "/config/couch.yml"' do
-       COUCH_ROOT = File.dirname(__FILE__)
-       RAILS_ROOT = '/goober' 
+       capturing(:stderr) { COUCH_ROOT = File.dirname(__FILE__) }
+       capturing(:stderr) { RAILS_ROOT = '/goober'  }
        CouchSpring.default_yaml_path.should == File.expand_path( File.dirname(__FILE__) + '/config/couch.yml' )
      end
      
      it 'should default to RAILS_ROOT + "/config/couch.yml"' do
-       COUCH_ROOT = nil
-       RAILS_ROOT = File.dirname(__FILE__) 
+       capturing(:stderr) { COUCH_ROOT = nil }
+       capturing(:stderr) { RAILS_ROOT = File.dirname(__FILE__)  }
        CouchSpring.default_yaml_path.should == File.expand_path( File.dirname(__FILE__) + '/config/couch.yml' )
      end
      
      it 'should not freak out if RAILS_ROOT is not defined' do
-       RAILS_ROOT = nil
+       capturing(:stderr) { RAILS_ROOT = nil }
        lambda { CouchSpring.default_yaml_path }.should_not raise_error
      end
      
@@ -47,50 +47,50 @@ describe CouchSpring do
    
    describe 'database environments' do
      it 'should use the file found at the default configuration' do
-       RAILS_ROOT = File.dirname(__FILE__)
+       capturing(:stderr) { RAILS_ROOT = File.dirname(__FILE__) }
        CouchSpring.database_environments.class.should == Gnash
        CouchSpring.database_environments[:production][:database].should == 'couch_spring_for_go'
      end
      
      it 'should find database configuration at path provided' do
-       RAILS_ROOT = nil
+       capturing(:stderr) { RAILS_ROOT = nil }
        config = CouchSpring.database_environments!(File.dirname(__FILE__) + '/config/alt.yml')
        config.class.should == Gnash   
        config[:production][:database].should == 'couch_spring_alt_the_way'
      end
      
      it '! method should raise a comprehensible exception when the yaml file is not found' do
-       RAILS_ROOT = nil
+       capturing(:stderr) { RAILS_ROOT = nil }
        lambda do
          CouchSpring.database_environments!('/not_here.yml')
        end.should raise_error( ArgumentError, 'Expected to find yaml file at /not_here.yml')
      end 
      
      it 'non ! method should return nil when path is not found' do
-       RAILS_ROOT = nil
+       capturing(:stderr) { RAILS_ROOT = nil }
        CouchSpring.database_environments('/not_here.yml').should be_nil
      end
    end
    
    describe 'default repository' do
      before do
-       RAILS_ROOT = File.dirname(__FILE__)
+       capturing(:stderr) { RAILS_ROOT = File.dirname(__FILE__) }
      end 
      
      it 'should default to COUCH_ENV' do
-       COUCH_ENV = 'test'
-       RAILS_ENV = 'development'
+       capturing(:stderr) { COUCH_ENV = 'test' }
+       capturing(:stderr) { RAILS_ENV = 'development' }
        CouchSpring.default_repository.should == 'test'
      end
      
      it 'should fall back on RAILS_ENV' do
-       COUCH_ENV =  nil
-       RAILS_ENV = 'test'
+       capturing(:stderr) { COUCH_ENV =  nil }
+       capturing(:stderr) { RAILS_ENV = 'test' }
        CouchSpring.default_repository.should == 'test'
      end
      
      it 'should otherwise default to production' do
-       RAILS_ENV = nil
+       capturing(:stderr) { RAILS_ENV = nil }
        CouchSpring.default_repository.should == 'production'
      end
      
@@ -102,8 +102,8 @@ describe CouchSpring do
    
    describe 'server from yaml' do
      before do
-       RAILS_ROOT = nil
-       COUCH_ROOT = File.dirname(__FILE__)
+       capturing(:stderr) { RAILS_ROOT = nil }
+       capturing(:stderr) { COUCH_ROOT = File.dirname(__FILE__) }
      end
      
      it 'should default to http protocol' do
@@ -126,14 +126,14 @@ describe CouchSpring do
      end
      
      it 'should return nil if repository is not found' do
-       COUCH_ROOT = nil              
+       capturing(:stderr) { COUCH_ROOT = nil               }
        CouchSpring.server_from_yaml(:production) == nil
      end
    end
  
    describe 'database url' do
      before do
-       COUCH_ROOT = File.dirname(__FILE__)
+       capturing(:stderr) { COUCH_ROOT = File.dirname(__FILE__) }
      end
      
      it 'should include the server uri' do
@@ -149,7 +149,7 @@ describe CouchSpring do
      end
      
      it 'should return nil if repository is not found' do
-       COUCH_ROOT = nil
+       capturing(:stderr) { COUCH_ROOT = nil }
        CouchSpring.database_from_yaml(:production) == nil
      end
    end

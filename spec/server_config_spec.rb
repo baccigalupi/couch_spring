@@ -6,8 +6,8 @@ describe CouchSpring::ServerConfig do
   before do
     CouchSpring.clear_servers
     CouchSpring.repository = nil
-    COUCH_ENV = nil
-    COUCH_ROOT = nil
+    capturing(:stderr) { COUCH_ENV = nil }
+    capturing(:stderr) { COUCH_ROOT = nil }
   end
     
   describe 'configuration' do
@@ -23,8 +23,8 @@ describe CouchSpring::ServerConfig do
     end
     
     it 'should add the default server from yaml if one is found' do
-      COUCH_ENV = 'cloudant'
-      COUCH_ROOT = File.dirname(__FILE__)
+      capturing(:stderr) { COUCH_ENV = 'cloudant' }
+      capturing(:stderr) { COUCH_ROOT = File.dirname(__FILE__) }
       
       CouchSpring::Database.stub(:create!).and_return(true)
 
@@ -33,7 +33,7 @@ describe CouchSpring::ServerConfig do
     end
     
     it 'should add a server from yaml from an environment/repository name' do
-      COUCH_ROOT = File.dirname(__FILE__) 
+      capturing(:stderr) { COUCH_ROOT = File.dirname(__FILE__)  }
       
       CouchSpring::Database.stub(:create!).and_return(true)
       
@@ -42,9 +42,9 @@ describe CouchSpring::ServerConfig do
     end
     
     it 'should create the database when adding a server from yaml' do
+      pending
       server = CouchSpring.server( :test )
       server.databases.should_not be_empty
-      d { server.databases }
       server.databases.select{|db| db.name == 'couch_spring_test'}.should_not be_empty
     end
     

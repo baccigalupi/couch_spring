@@ -40,6 +40,5 @@ module CouchSpring
       super
     end
 
-
   end
 end

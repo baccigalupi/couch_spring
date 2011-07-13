@@ -22,4 +22,6 @@ end
 
 require "wrong/d"
 include Wrong::D
+require "wrong/helpers"
+include Wrong::Helpers
 Wrong.config.color
