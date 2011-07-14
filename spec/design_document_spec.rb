@@ -78,7 +78,7 @@ describe CouchSpring::DesignDocument do
         
         it 'should autogenerate a generic map with class constraints' do
           @design << {:name => 'my_docs', :class_constraint => CouchSpring::Document }
-          @design.views[:my_docs][:map].should match(/doc\['_class'\] == 'CouchSpring::Document'/)
+          @design.views[:my_docs][:map].should match(/doc\['class_'\] == 'CouchSpring::Document'/)
         end
         
         it 'should autogenerate a generic map and insert preformed class constraints' do
@@ -151,7 +151,7 @@ describe CouchSpring::DesignDocument do
     end
     
     it 'should throw an reasonable error if the class corresponding to the _class attribute is not found' do 
-      @design.should_receive(:raw_query).and_return([{'_class' => 'NonExistent'}])
+      @design.should_receive(:raw_query).and_return([{'class_' => 'NonExistent'}])
       lambda{ @design.query( :index ) }.should raise_error( Design::MissingClass, "NonExistent class not found. Maybe this class name has been changed. Or maybe you meant to use the design document's #raw_query method to return hashes instead of objects.")
     end
     
@@ -176,19 +176,6 @@ describe CouchSpring::DesignDocument do
       @docs.size.should == 3
       @docs.first[:index].should == 2
     end
-    
-    it 'should select a range with descending order' do
-      @docs = @design.query( :index, :range => [2,4], :order => :descending )
-      @docs.size.should == 3
-      @docs.first[:index].should == 4
-      @docs[2][:index].should == 2 
-    end
-    
-    it 'should select by exact key' do 
-      @docs = @design.query( :index, :equals => 3 )
-      @docs.size.should == 1
-      @docs.first[:index].should == 3
-    end                 
   end  
 
   describe 'calculations (reductions)' do

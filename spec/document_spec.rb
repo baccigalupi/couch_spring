@@ -5,26 +5,30 @@ Document = CouchSpring::Document unless defined?( Document )
 describe Document  do 
   describe 'class level bulk operations' do
     class Thing < Document; end 
+
+    before do
+      Thing.database.delete_all
+    end
     
     it 'should save the document class to a hidden field' do
-      begin
-        thing = Thing.create!(:amagig => true)
-      rescue Exception => e
-        puts e.message
-      end
-      thing[:_class].should == 'Thing'
+      thing = Thing.create!(:amagig => true)  
+      thing[:class_].should == 'Thing'
     end
     
     it 'should return a count of all records' do
+      old_count = Thing.count
       things = [
         Thing.create!( :foo => 'bar' ),
         Thing.create!( :bar => 'zar' )
       ]
-      
-      Thing.count.should == 2
+      puts "created two things"
+      gets
+      Thing.count.should == old_count + 2
     end 
       
     it 'should delete all' do
+      pending
+      Thing.count.should == 0
       things = [
         Thing.create!( :foo => 'bar' ),
         Thing.create!( :bar => 'zar' )

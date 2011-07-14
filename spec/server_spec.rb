@@ -5,10 +5,8 @@ describe Server do
   before :all do
     CouchSpring.clear_servers
     CouchSpring.repository = nil
-    capturing_stderr do
-      COUCH_ENV = nil
-      COUCH_ROOT = nil
-    end  
+    capturing(:stderr) { COUCH_ENV = nil }
+    capturing(:stderr) { COUCH_ROOT = nil }
   end
   
   before :each do

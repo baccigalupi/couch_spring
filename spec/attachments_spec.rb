@@ -126,7 +126,8 @@ describe CouchSpring::Attachments do
     it 'should have the same data as the original file' do 
       @attachments.add!( :my_file, @file )
       file = @attachments.get!(:my_file)
-      file.read.should == @file.read
+      read_binary(file).should == read_binary(@file)
+      # file.read.should == @file.read
     end
     
     it 'should stream an attachment' do
@@ -134,7 +135,7 @@ describe CouchSpring::Attachments do
       data = @attachments.get!( :my_file, true ) 
       data.should_not be_nil
       data.should_not be_empty
-      data.should == @file.read
+      data.should == read_binary(@file)
     end         
   end     
   

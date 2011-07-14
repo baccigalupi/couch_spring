@@ -5,10 +5,9 @@ require 'rubygems'
 require 'json'
 require 'couch_spring'
 
-# Set Adapter here to use with individual test runs 
-# CouchSpring.set_http_adapter( 'TyphoeusAdapter')
-
 require 'rspec'
+require 'rspec/autorun'
+
 require File.dirname(__FILE__) + "/test_helpers"
 
 RSpec.configure do |config|

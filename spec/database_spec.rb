@@ -1,5 +1,5 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
- 
+
 Server = CouchSpring::Server unless defined?( Server )
 Database = CouchSpring::Database unless defined?( Database )
 
@@ -8,10 +8,9 @@ describe Database do
     @default_server = Server.new
     @default_server.clear!
     
-    @name = 'things'
-    @db = Database.new(@name) 
+    CouchSpring.delete( @db.uri ) rescue nil
   end
-  
+
   describe 'equality' do
     it 'should be == when the uris are the same' do 
       @db.should == Database.new(@name)
@@ -23,23 +22,23 @@ describe Database do
       @db.should_not == thing
     end  
   end    
-  
+
   describe 'initialization' do
     describe 'name' do
       it 'should not require name for initialization' do
         lambda{ Database.new }.should_not raise_error( ArgumentError )
-      end 
-      
+      end
+
       it 'should have a default name of "ruby"' do
-        database = Database.new 
+        database = Database.new
         database.name.should == 'ruby'
-      end  
-    
+      end
+
       it 'should escape the name, when one is provided' do
         db = Database.new(:name => '&not::kosher*%')
         db.name.should == 'not__kosher'
       end
-      
+
       it 'should accept Symbols as names' do
         db = Database.new( :name => :my_name )
         db.name.should == 'my_name'
@@ -62,26 +61,26 @@ describe Database do
         db.name.should == 'foobar'
       end
     end
-    
+
     describe 'server' do
       it 'should have the default server if none is specified' do
         db = Database.new
         db.server.should_not be_nil
         db.server.should == CouchSpring.server
-      end  
-      
+      end
+
       it 'should accepts a symbol or string as the server parameter and maps it to a saved server' do
         user_server = Server.new(:port => 8888)
         CouchSpring.server(:user, user_server)
-        
+
         db = Database.new(:server => :user)
-        db.server.should == user_server 
-        
+        db.server.should == user_server
+
         db = Database.new(:server => 'user')
         db.server.should == user_server
-      end  
-      
-      it 'accept a Server object as the server parameter' do 
+      end
+
+      it 'accept a Server object as the server parameter' do
         user_server = Server.new(:port => 8888)
         db = Database.new(:name => 'new_people', :server => user_server )
         db.server.should == user_server
@@ -93,47 +92,47 @@ describe Database do
         db.server.should == user_server
         db.name.should == 'something_else'
       end
-    end 
+    end
   end
-  
+
   describe 'uri' do
     it 'should use the default server and default database name' do
       db = Database.new
       db.name.should == 'ruby'
       db.uri.should == "http://127.0.0.1:5984/ruby"
     end
-    
+
     it 'should use the name when provided' do
       db = Database.new( @name )
       db.name.should == 'things'
       db.uri.should == 'http://127.0.0.1:5984/things'
     end
-    
+
     it 'should use the server when provided' do
       server = Server.new(:port => 8888)
       db = Database.new(:name => 'things', :server => server )
       db.uri.should == 'http://127.0.0.1:8888/things'
     end
-  end  
+  end
 
   describe 'save' do
     it 'should assure that a database instance has a database on the server' do
-      lambda{ CouchSpring.get( @db.uri ) }.should raise_error 
+      lambda{ CouchSpring.get( @db.uri ) }.should raise_error
       @db.save.should_not == false
       lambda{ CouchSpring.get( @db.uri ) }.should_not raise_error
     end
-    
+
     it 'should return false when the request fails' do
       CouchSpring.should_receive(:put).and_raise( CouchSpring::RequestFailed )
       @db.save.should == false
-    end  
-    
+    end
+
     it 'should throw an exception when the ! form is used' do
       CouchSpring.should_receive(:put).and_raise( CouchSpring::RequestFailed )
       lambda{ @db.save!}.should raise_error
-    end    
-  end  
-  
+    end
+  end
+
   describe '#create' do
     before(:each) do
       CouchSpring.delete( @db.uri ) rescue nil
@@ -143,22 +142,22 @@ describe Database do
       db = Database.create(@name)
       lambda{ CouchSpring.get db.uri }.should_not raise_error
     end
-    
+
     it 'should an existing database if there is one' do
       Database.create!(@name)
       db = Database.create!(@name)
       db.should_not == false
-      db.class.should == Database 
+      db.class.should == Database
     end
-  
+
     it 'should return false if an HTTP error occurs' do
       CouchSpring.should_receive(:put).and_raise( CouchSpring::RequestFailed )
       db = Database.create( @name )
       db.should == false
-    end 
+    end
   end
-  
-  describe '#create!' do  
+
+  describe '#create!' do
     it 'should create and return a couchdb database if it doesn\'t yet exist' do
       lambda{ CouchSpring.get db.uri }.should raise_error
       db = Database.create!(@name)
@@ -169,27 +168,27 @@ describe Database do
       Database.create(@name) 
       lambda{ Database.create!(@name) }.should_not raise_error
     end
-  
+
     it 'create should raise an error if an HTTP error occurs' do
       CouchSpring.should_receive(:put).and_raise( CouchSpring::RequestFailed )
       lambda{ Database.create!(@name) }.should raise_error
-    end      
+    end
   end
-  
-  describe '#exist?' do 
+
+  describe '#exist?' do
     it '#exists? should be false if the database doesn\'t yet exist in CouchSpring land' do
       db = Database.new(@name)
       db.should_not be_exist
     end
-  
+
     it '#exists? should be true if the database does exist in CouchSpring land' do
       db = Database.create(@name)
       db.should be_exist
-    end 
-  end  
-  
+    end
+  end
+
   describe '#info' do
-    it '#info raise an error if the database doesn\'t exist' do 
+    it '#info raise an error if the database doesn\'t exist' do
       db = Database.new(@name)
       lambda{ db.info }.should raise_error( CouchSpring::ResourceNotFound )
     end
@@ -211,8 +210,6 @@ describe Database do
     it 'should return false if it doesn\'t exist' do 
       db = Database.new(@name)
       db.exist?.should == false
-      lambda{ db.delete }.should_not raise_error
-      db.delete.should == false 
     end
   end
   
@@ -264,14 +261,14 @@ describe Database do
       @db.replicate(:my_target)
     end 
     
-    it 'should create the target if it does not exist' do
+    it 'should really work' do
       @db.save!
       @db.replicate(:my_target)
       my_target = Database.new(:server => @db.server, :name => :my_target)
       my_target.exist?.should == true
     end    
-    
-    it 'should replicate to another server' do 
+
+    it 'should replicate to another server' do
       remote_db = Database.new(
         :name => :remote_database,
         :server => Server.new(:domain => 'myremoteserver.com')
@@ -283,7 +280,7 @@ describe Database do
       remote_db.should_receive(:save).and_return( self )
       CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
       @db.save!
-      @db.replicate(remote_db) 
+      @db.replicate(remote_db)
     end
     
     it 'should create the target database when that option is passed' do
@@ -341,14 +338,28 @@ describe Database do
       @db.replicate(:my_target, {:filter => "my_filter_name"})
     end
     
-    # replication options:
-    # create_target
-    # cancel
-    # proxy
-    # filter => filter_name
-    # query_params => array_of_params
-    # doc_ids => array_of_ids
+    it 'should use the query params when provided' do
+      data = {
+        'source' => "#{@db.name}",
+        'target' => "#{@db.server.uri}/my_target",
+        'filter' => 'my_filter_name',
+        'query_params' => ['foo', 'bar', 'etc']
+      }
+      CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
+      @db.save!
+      @db.replicate(:my_target, {:filter => "my_filter_name", :query_params => ['foo', 'bar', 'etc']})
+    end
     
+    it 'should filter on doc_ids when provided' do
+      data = {
+        'source' => "#{@db.name}",
+        'target' => "#{@db.server.uri}/my_target",
+        'doc_ids' => ['1', '2', '3']
+      }
+      CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
+      @db.save!
+      @db.replicate(:my_target, {:doc_ids => ['1','2','3']})
+    end
   end         
     
   describe 'document managment' do 
@@ -357,19 +368,28 @@ describe Database do
     end  
     
     describe 'bulk operations' do 
+      @db.replicate(:my_target, true)
+    end
+  end
+
+  describe 'document managment' do
+    it 'should return all documents' do
+    end
+
+    describe 'bulk operations' do
       it 'should save'
       it 'should update'
       it 'should be smart enough to mix saves with updates without effort'
       it 'should bulk delete'
       it 'should bulk save, update and delete in a single request'
-    end 
-  end 
-  
-  describe 'slow view' do 
+    end
+  end
+
+  describe 'slow view' do
     it 'should receive a map reduce and produce a slow view'
   end
-  
-  describe 'design documents' do 
+
+  describe 'design documents' do
     it 'should return a list of design documents'
-  end        
-end  
+  end
+end
