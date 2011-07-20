@@ -2,11 +2,9 @@ source "http://rubygems.org"
 
 gem "mime-types"
 gem "rest-client"
-gem "typhoeus"
 
 group :test do
   gem "rspec"
-  gem "wrong"
 end
 
 group :development do
