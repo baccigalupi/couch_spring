@@ -32,8 +32,29 @@ describe CouchSpring::RestClientAdapter do
             "conflict with strange class 409"
           end
         end
+        
         RestClient.should_receive(:get).and_raise( FunkyError )
         lambda { @adapter.get('http://foo') }.should raise_error( CouchSpring::Conflict )
+        
+        class FunkyError < RestClient::ResourceNotFound
+          def message
+            "409 conflict"
+          end
+        end
+        
+        RestClient.should_receive(:get).and_raise( FunkyError )
+        lambda { @adapter.get('http://foo') }.should raise_error( CouchSpring::Conflict )
+      end
+      
+      it 'does not mis-recognize conflicts' do
+        class FunkyError < RestClient::ResourceNotFound
+          def message
+            "thing not found with id 40923"
+          end
+        end
+        
+        RestClient.should_receive(:get).and_raise( FunkyError )
+        lambda { @adapter.get('http://foo') }.should raise_error( CouchSpring::ResourceNotFound )
       end
       
       it 'defaults the exception class to CouchSpring::RequestFailed' do

@@ -25,7 +25,7 @@ module CouchSpring
       
       # this error name check and conversion was originally done with
       # metaprogramming, but an if statement was better for performance
-      spring_exception = if e.message && e.message.match(/409\z/)
+      spring_exception = if e.message && e.message.match(/\b409\b/)
         CouchSpring::Conflict
       elsif e.is_a?(RestClient::ResourceNotFound)
         CouchSpring::ResourceNotFound
