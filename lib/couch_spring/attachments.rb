@@ -96,7 +96,7 @@ module CouchSpring
     # @api public
     def get!( name, stream=false ) 
       file = nil
-      response = CouchSpring.get( uri_for( name, false ), true ) rescue nil
+      response = CouchSpring.get( uri_for( name, false ), :streamable =>true ) rescue nil
       data = response && response.respond_to?(:keys) ? Base64.decode64( response['data'] ) : nil
       if data || response
         file = Tempfile.new( CGI.escape( name.to_s ) ) 

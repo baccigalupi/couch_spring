@@ -8,10 +8,10 @@ module CouchSpring
       rescue Exception => e
         repackage_exception e
       end
-      streamable ? response : parse_json    
+      streamable ? response : parse_json( response )    
     end
       
-    def self.parse_json streamable
+    def self.parse_json response
       begin
         JSON.parse( response )
       rescue Exception => e

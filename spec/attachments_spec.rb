@@ -132,7 +132,7 @@ describe CouchSpring::Attachments do
     
     it 'should stream an attachment' do
       @attachments.add!( :my_file, @file )
-      data = @attachments.get!( :my_file, true ) 
+      data = @attachments.get!( :my_file, :streamable => true ) 
       data.should_not be_nil
       data.should_not be_empty
       data.should == read_binary(@file)

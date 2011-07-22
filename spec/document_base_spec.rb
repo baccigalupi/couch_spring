@@ -501,7 +501,7 @@ describe DocumentBase do
       @doc.save!
       
       url = @doc.attachments.uri_for('dup.png')  
-      lambda{ CouchSpring.get( url, true ) }.should_not raise_error
+      lambda{ CouchSpring.get( url, :streamable => true ) }.should_not raise_error
     end  
     
     it 'should save and retrieve the data correctly' do 
@@ -530,7 +530,7 @@ describe DocumentBase do
       data.should_not be_nil
       data.should_not be_empty
       
-      streamed = @doc.attachments.get!( :my_file, true ) 
+      streamed = @doc.attachments.get!( :my_file, :streamable => true ) 
       streamed.should == data
     end
     

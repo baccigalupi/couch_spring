@@ -88,7 +88,7 @@ module CouchSpring
     # @api public
     def exist?
       begin
-        info
+        CouchSpring.get( uri )
         true
       rescue CouchSpring::ResourceNotFound
         false
@@ -98,6 +98,11 @@ module CouchSpring
 
     # GET the database info from CouchSpring
     def info
+      CouchSpring.get( uri ) rescue nil
+    end
+    
+    # GET the database info from CouchSpring, raising an error if the database is not present
+    def info!
       CouchSpring.get( uri )
     end
 
@@ -135,10 +140,13 @@ module CouchSpring
         'source' => self.name,
         'target' => target.uri
       }
-      data.merge!('continuous' => true)     if opts[:continuous]
-      data.merge!('create_target' => true)  if opts[:create]
-      data.merge!('cancel' => true)         if opts[:cancel]
-      data.merge!('proxy' => opts[:proxy])  if opts[:proxy]
+      data.merge!('continuous' => true)             if opts[:continuous]
+      data.merge!('create_target' => true)          if opts[:create]
+      data.merge!('cancel' => true)                 if opts[:cancel]
+      data.merge!('proxy' => opts[:proxy])          if opts[:proxy]
+      data.merge!('filter' => opts[:filter])        if opts[:filter]
+      data.merge!('query_params' => opts[:params])  if opts[:params]
+      data.merge!('doc_ids' => opts[:doc_ids])    if opts[:doc_ids]
       
       CouchSpring.post( "#{server.uri}/_replicate/", data )  
     end 

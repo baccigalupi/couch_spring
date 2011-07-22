@@ -1,10 +1,10 @@
 module TestHelpers
   # see http://www.justskins.com/forums/closing-stderr-105096.html
-  def capturing(stream)
+  def capturing(stream, &block)
     if stream == :stdout
-      capturing_stdout
+      capturing_stdout &block
     else
-      capturing_stderr
+      capturing_stderr &block
     end
   end
   

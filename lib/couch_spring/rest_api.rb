@@ -19,9 +19,9 @@ module CouchSpring
       response = RestAPI.adapter.put( uri, doc )
     end
 
-    def get(uri, streamable=false)
+    def get(uri, opts={})
       log :get, uri
-      response = RestAPI.adapter.get(uri, streamable)
+      response = RestAPI.adapter.get(uri, :streamable => opts[:streamable])
     end
 
     def post(uri, doc = nil)
