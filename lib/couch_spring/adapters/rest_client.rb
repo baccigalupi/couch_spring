@@ -5,38 +5,43 @@ module CouchSpring
     def self.process_result(streamable=false, &blk)
       begin
         response = yield
-        begin
-          JSON.parse( response )
-        rescue Exception => e
-          if streamable
-            return response 
-          else
-            message = [e.class.to_s, e.message]
-            message << e.response if e.respond_to? :response
-            message = message.join(" ")
-            raise CouchSpring::RequestFailed, message
-          end  
-        end   
       rescue Exception => e
-        message = [e.class.to_s, e.message]
-        message << e.response if e.respond_to? :response
-        message = message.join(" ")
-        ending = e.class.to_s.match(/[a-z0-9_]*\z/i)
-        if e.message.match(/409\z/)
-          raise CouchSpring::Conflict, message
-        else  
-          begin
-            error = "CouchSpring::#{ending}".constantize
-          rescue
-            raise CouchSpring::RequestFailed, message
-          end
-          raise error, message
-        end     
-      end    
-    end  
+        repackage_exception e
+      end
+      streamable ? response : parse_json    
+    end
+      
+    def self.parse_json streamable
+      begin
+        JSON.parse( response )
+      rescue Exception => e
+        repackage_exception( e )
+      end
+    end
   
-    def self.get(uri, streamable=false, headers={}) 
-      process_result(streamable) do 
+    def self.repackage_exception( e )
+      message = e.message || ''
+      message << ": #{e.response}" if e.respond_to? :response
+      
+      # this error name check and conversion was originally done with
+      # metaprogramming, but an if statement was better for performance
+      spring_exception = if e.message && e.message.match(/409\z/)
+        CouchSpring::Conflict
+      elsif e.is_a?(RestClient::ResourceNotFound)
+        CouchSpring::ResourceNotFound
+      elsif e.is_a?(RestClient::RequestTimeout)
+        CouchSpring::RequestTimeout
+      elsif e.is_a?(RestClient::ServerBrokeConnection)
+        CouchSpring::ServerBrokeConnection
+      else 
+        CouchSpring::RequestFailed
+      end
+      
+      raise spring_exception, message
+    end
+    
+    def self.get(uri, headers={})
+      process_result(headers.delete(:streamable)) do 
         response = RestClient.get(uri, headers)
       end 
     end

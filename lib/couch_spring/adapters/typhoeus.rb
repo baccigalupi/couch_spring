@@ -31,7 +31,8 @@ module CouchSpring
       raise exception, "HTTP Code - #{code}: #{response['reason']}"  
     end     
   
-    def self.get(uri, headers={}, streamable=false)
+    def self.get(uri, headers={})
+      streamable = headers.delete(:streamable)
       request do |easy|
         easy.url      = uri
         easy.headers  = headers unless headers.empty?
@@ -72,7 +73,7 @@ module CouchSpring
       end
     end
 
-    def self.copy(uri, headers) 
+    def self.copy(uri, headers={}) 
       request do |easy|
         easy.url      = uri 
         easy.method   = :copy
