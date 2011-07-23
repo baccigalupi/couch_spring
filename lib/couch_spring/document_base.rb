@@ -3,7 +3,7 @@ module CouchSpring
     # Initializes a new storage document. 
     # 
     # @param [Hash, Gnash]
-    # @return [Aqua::Storage] a Hash/Gnash with some extras
+    # @return [Gnash] a Hash/Gnash with some extras
     #
     # @api public
     def initialize( hash={} )
@@ -68,16 +68,22 @@ module CouchSpring
     end
     alias :new_document? :new?
     
-    # Getter setter for default of custom database per Document class
-    # 
+    # Getter and clearer for default of custom database per Document class
+    # @param [Symbol]
     # @return [CouchSpring::Database]
     #
     # @api public
-    def self.database( db=nil )
+    def self.database( flag=nil )
+      if flag == :clear
+        @database = nil
+      end
+      @database ||= default_database
+    end
+    
+    def self.database=( db )
       if db
-        @database = 
-        if db.is_a?( Database ) 
-          db.save
+        @database = if db.is_a?( Database )
+          db.save!
           db
         else
           Database.create(:server => CouchSpring.server, :name => db) 
@@ -86,19 +92,17 @@ module CouchSpring
       @database ||= default_database
     end
     
+    # Gets the database of the super class or gets/creates the default database established in Database class.
+    # @return [CouchSpring::Database]
+    #
+    # @api private
     def self.default_database
       if superclass.respond_to?(:database)
         superclass.database   
       else
-        Database.create(:server => CouchSpring.server)
+        Database.create!(:server => CouchSpring.server)
       end  
     end   
-    
-    # pseudo-alias for self.database(db) so that it works well in class declarations
-    # and in other coding flows.
-    def self.database=( db )
-      database(db)
-    end  
     
     # Sets default database per instance. Defaults to class's database
     # 
@@ -107,20 +111,6 @@ module CouchSpring
     # @api public 
     def database
       @database ||= self.class.database
-    end 
-    
-    # Setter for the database per instance. Used to override default above. 
-    #
-    # @return [CouchSpring::Database]
-    #
-    # @api public
-    def database=( db )
-      @database = 
-      if db.is_a?( Database ) 
-        db
-      else
-        Database.new(:server => self.class.database.server, :name => db)
-      end  
     end 
     
     # couchdb database url for this document

@@ -5,11 +5,12 @@ DocumentBase =  CouchSpring::DocumentBase unless defined?( DocumentBase )
 Attachments =   CouchSpring::Attachments  unless defined?( Attachments )
 
 describe DocumentBase do 
-    before(:each) do
-    # delete the database and recreate it
-    @db = Database.new
-    @db.delete
-    DocumentBase.instance_variable_set('@database', nil) # this clears the database
+  before do
+    @server = CouchSpring::Server.new
+    @server.clear!
+    DocumentBase.database(:clear)
+    
+    @db = Database.new # default
     
     @params = {
       :id => 'my_slug/thaz-right',
@@ -49,85 +50,76 @@ describe DocumentBase do
   describe 'database' do
     class SubDoc < DocumentBase; end
      
-    before(:each) do
+    before do
       @things_db = Database.new(:name => 'things')
     end
     
-    describe 'per class' do 
-      it 'should have a default database' do
-        DocumentBase.database.should == @db
+    describe 'class level' do 
+      describe 'reading' do
+        it 'should have a default database' do
+          DocumentBase.database.should == @db
+        end
+      
+        it 'the default database should exist' do
+          DocumentBase.database.exist?.should be_true
+        end
+      end
+       
+      describe 'setting' do
+        it 'should use and save a custom database' do
+          DocumentBase.database = @things_db
+          DocumentBase.database.should == @things_db
+          DocumentBase.database.exist?.should be_true
+        end 
+      
+        it 'should have a custom database when passed a symbol' do
+          DocumentBase.database = @db
+          DocumentBase.database.should_not == @things_db
+          DocumentBase.database = :things 
+          DocumentBase.database.should == @things_db
+        end
+        
+        it 'should have a custom database when passed a string' do
+          DocumentBase.database = @db
+          DocumentBase.database.should_not == @things_db
+          DocumentBase.database = 'things' 
+          DocumentBase.database.should == @things_db
+        end
       end
       
-      it 'the default database should exist' do
-        DocumentBase.database.exist?.should be_true
-      end   
-       
-      it 'should have a custom database when specified using a database' do
-        DocumentBase.database( @things_db )
-        DocumentBase.database.should == @things_db
-        DocumentBase.database.exist?.should be_true
-      end 
+      describe 'clearing' do
+        it 'should work when "getter" method recieves the :clear symbol' do
+          DocumentBase.database.should == @db
+          DocumentBase.database.exist?.should == true
+          DocumentBase.database(:clear)
+          DocumentBase.instance_variable_get('@db').should == nil
+        end
+      end
       
-      it 'should have a custom database when passed a string or symbol' do
-        DocumentBase.database( :things )
-        DocumentBase.database.should == @things_db
-        DocumentBase.database(@db)
-        DocumentBase.database.should_not == @things_db
-        DocumentBase.database( 'things' )
-        DocumentBase.database.should == @things_db
-      end  
-      
-      describe 'inheritance' do    
-        before(:each) do
-          SubDoc.instance_variable_set('@database', nil) # this clears the database
-        end  
-        
+      describe 'inheritance' do
         it 'should inheirit its default database from the superclass' do
-          DocumentBase.database( @things_db )
+          DocumentBase.database = @things_db 
+          SubDoc.database(:clear)
+          DocumentBase.database = @things_db
           SubDoc.database.should == @things_db
         end
       
         it 'should have different database from the subclass on customization' do
           DocumentBase.database.should == @db
-          SubDoc.database( @things_db )
+          SubDoc.database = @things_db 
           SubDoc.database.should_not == @db
           SubDoc.database.should == @things_db  
         end  
-      end   
-          
+      end    
     end 
-    
-    describe 'per instance' do
-      before do
-        DocumentBase.database( @db )
-      end  
-      
-      it 'should default to the class database' do
-        @doc.database.should == @db
-      end 
-       
-      it 'should default to the custom class database' do 
-        DocumentBase.database( @things_db )
-        @doc.database.should == @things_db
+  
+    describe 'instance level' do
+      it 'is whatever the class level is' do
+        SubDoc.database = @things_db
+        SubDoc.new.database.should == @things_db
       end
-        
-      it 'should be customizable via database object' do 
-        @doc.database.should == @db
-        @doc.database = @things_db 
-        @doc.database.should == @things_db
-      end
-        
-      it 'should be customizable via a string or symbol' do
-        @doc.database.should == @db
-        @doc.database = :things
-        @doc.database.should == @things_db
-        @doc.database = @db
-        @doc.database.should_not == @things_db
-        @doc.database = 'things'
-        @doc.database.should == @things_db
-      end   
-    end  
-  end      
+    end
+  end
   
   describe 'uri' do 
     it 'should have use the default database uri by default with the document id'  do 
@@ -137,8 +129,7 @@ describe DocumentBase do
     
     it 'should reflect the non-default database name' do
       db = Database.create('my_class') 
-      DocumentBase.database( db )
-      @doc.database = db
+      DocumentBase.database = db
       @doc.uri.should == "#{db.uri}/my_slug%2Fthaz-right"
     end
     
@@ -152,8 +143,7 @@ describe DocumentBase do
   
   describe 'saving' do
     before(:each) do
-      DocumentBase.database( @db ) 
-      @doc.database = @db
+      DocumentBase.database = @db 
     end  
     
     describe "#save" do
@@ -180,28 +170,7 @@ describe DocumentBase do
         @doc.save!
         @doc[:_id].should_not == doc_id
         @doc.rev.should_not == doc_rev
-      end 
-      
-      describe 'to a custom database' do 
-        before do 
-          @things_db = Database.create(:name => 'things')
-          @things_db.delete
-          @things_db.save # clears this database
-        end  
-        
-        it 'should save work' do
-          @doc.database = @things_db
-          @doc.save!
-          lambda{ CouchSpring.get( "#{@things_db.uri}/#{@doc[:_id]}")}.should_not raise_error
-        end 
-      
-        it 'should retain database after reload' do
-          @doc.database = @things_db
-          @doc.save!
-          @doc.reload
-          @doc.database.should == @things_db
-        end  
-      end     
+      end
     end
     
     it '#save! should raise an error on failure when creating' do
@@ -427,6 +396,7 @@ describe DocumentBase do
   
   describe 'attachments' do
     before(:each) do
+      @doc.delete! if @doc.exists?
       @file = File.new( File.dirname( __FILE__ ) + '/attachments/image_attach.png' )
     end
        
@@ -447,7 +417,6 @@ describe DocumentBase do
     end
     
     it 'should pack attachments to key _attachments on save' do 
-      @doc.delete! if @doc.exists?
       @doc.attachments.add(:my_file, @file)
       @doc.attachments.add("dup.png", @file)
       pack = @doc.attachments.pack
@@ -456,8 +425,6 @@ describe DocumentBase do
     end   
     
     it 'should pack attachments before save' do 
-      @doc.delete! if @doc.exists?
-      
       @doc.attachments.add(:my_file, @file)
       @doc.attachments.add("dup.png", @file)
       pack = @doc.attachments.pack
@@ -467,8 +434,6 @@ describe DocumentBase do
     end 
     
     it 'should pack attachments before save' do 
-      @doc.delete! if @doc.exists?
-      
       @doc.attachments.add(:my_file, @file)
       @doc.attachments.add("dup.png", @file)
       pack = @doc.attachments.pack
@@ -478,8 +443,6 @@ describe DocumentBase do
     end 
     
     it 'should be correctly formed in database' do
-      @doc.delete! if @doc.exists?
-      
       @doc.attachments.add(:my_file, @file)
       @doc.attachments.add("dup.png", @file)
       @doc.save!
@@ -494,8 +457,6 @@ describe DocumentBase do
     end 
     
     it 'should be retrievable by a url' do
-      @doc.delete! if @doc.exists?
-      
       @doc.attachments.add(:my_file, @file)
       @doc.attachments.add("dup.png", @file)
       @doc.save!
@@ -505,49 +466,13 @@ describe DocumentBase do
     end  
     
     it 'should save and retrieve the data correctly' do 
-      @doc.delete! if @doc.exists?
-      
       @doc.attachments.add(:my_file, @file)
       @doc.attachments.add("dup.png", @file)
       @doc.save!
       
-      data = read_binary @file
-      data.should_not be_nil
-      data.should_not be_empty
-      
-      file = @doc.attachments.get!( :my_file ) 
-      file.read.should == data
+      file = @doc.attachments.get!( :my_file )
+      file.read.should == @file.read
     end
-    
-    it 'should save and stream the data correctly' do 
-      @doc.delete! if @doc.exists?
-      
-      @doc.attachments.add(:my_file, @file)
-      @doc.attachments.add("dup.png", @file)
-      @doc.save!
-      
-      data = read_binary @file
-      data.should_not be_nil
-      data.should_not be_empty
-      
-      streamed = @doc.attachments.get!( :my_file, :streamable => true ) 
-      streamed.should == data
-    end
-    
-    it 'should have a class accessor for attachments' do 
-      @doc.delete! if @doc.exists?
-      
-      @doc.attachments.add(:my_file, @file)
-      @doc.attachments.add("dup.png", @file)
-      @doc.save! 
-      
-      data = read_binary @file
-      data.should_not be_nil
-      data.should_not be_empty
-      
-      attachment = DocumentBase.attachment( @doc.id, 'my_file' ) 
-      attachment.read.should == data
-    end  
   end  
            
 end  

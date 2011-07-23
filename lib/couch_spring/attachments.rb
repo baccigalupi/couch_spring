@@ -89,9 +89,7 @@ module CouchSpring
     # @api public
     def get!( name ) 
       response = CouchSpring.get( uri_for( name, false ) )
-      unless data = Base64.decode64( response['data'] )
-        raise CouchSpring::RequestFailed, 'Attachment has no data'
-      end
+      data = response.respond_to?(:keys) ? response['data'] : response
       file = Tempfile.new( CGI.escape( name.to_s ) ) 
       file.write( data )
       file.rewind 

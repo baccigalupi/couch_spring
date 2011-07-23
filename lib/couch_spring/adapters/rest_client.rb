@@ -15,7 +15,7 @@ module CouchSpring
       begin
         JSON.parse( response )
       rescue Exception => e
-        repackage_exception( e )
+        response
       end
     end
   

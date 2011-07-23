@@ -1,4 +1,7 @@
+require 'pp'
+
 module TestHelpers
+  # suppressing warnings -----------------------------------------
   # see http://www.justskins.com/forums/closing-stderr-105096.html
   def capturing(stream, &block)
     if stream == :stdout
@@ -26,7 +29,9 @@ module TestHelpers
     $stderr = STDERR
   end
   
-  def read_binary file
-    contents = open(file, "rb") {|io| io.read }
+  def hr message=nil
+    str = "<hr>#{message}"
+    str << "<hr>" if message
+    puts str
   end
 end
