@@ -89,7 +89,7 @@ module CouchSpring
     # @api public
     def get!( name ) 
       response = CouchSpring.get( uri_for( name, false ) )
-      data = response.respond_to?(:keys) ? response['data'] : response
+      data = response.respond_to?(:keys) ?  Base64.decode64(response['data']) : response
       file = Tempfile.new( CGI.escape( name.to_s ) ) 
       file.write( data )
       file.rewind 

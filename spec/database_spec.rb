@@ -98,6 +98,19 @@ describe Database do
         db.name.should == 'something_else'
       end
     end
+    
+    describe 'state' do
+      it 'should be new?' do
+        db = Database.new('new_2_you')
+        db.new?.should == true
+      end
+      
+      it 'should not have to hit the database to know it is new' do
+        db = Database.new('new_4_you')
+        CouchSpring.should_not_receive(:get)
+        db.new?.should == true
+      end
+    end
   end
 
   describe 'uri' do
@@ -121,20 +134,51 @@ describe Database do
   end
 
   describe 'save' do
-    it 'should assure that a database instance has a database on the server' do
-      lambda{ CouchSpring.get( @db.uri ) }.should raise_error
-      @db.save.should_not == false
-      lambda{ CouchSpring.get( @db.uri ) }.should_not raise_error
+    describe 'non ! method' do
+      it 'should assure that a database instance has a database on the server' do
+        lambda{ CouchSpring.get( @db.uri ) }.should raise_error
+        @db.save.should_not == false
+        lambda{ CouchSpring.get( @db.uri ) }.should_not raise_error
+      end
+
+      it 'should return false when the request fails' do
+        CouchSpring.should_receive(:put).and_raise( CouchSpring::RequestFailed )
+        @db.save.should == false
+      end
     end
 
-    it 'should return false when the request fails' do
-      CouchSpring.should_receive(:put).and_raise( CouchSpring::RequestFailed )
-      @db.save.should == false
+    describe '! method' do
+      it 'should throw an exception when the ! form is used' do
+        CouchSpring.should_receive(:put).and_raise( CouchSpring::RequestFailed )
+        lambda{ @db.save!}.should raise_error
+      end
+      
+      it 'should not raise an error if the database already exists' do
+        @db.save.should_not == false
+        db = Database.new(@db.name)
+        lambda { db.save! }.should_not raise_error
+      end
     end
-
-    it 'should throw an exception when the ! form is used' do
-      CouchSpring.should_receive(:put).and_raise( CouchSpring::RequestFailed )
-      lambda{ @db.save!}.should raise_error
+    
+    describe 'state of newness' do
+      it 'is not new on success' do
+        @db.new?.should == true
+        @db.save!
+        @db.new?.should == false
+      end
+    
+      it 'is still new on failure' do
+        CouchSpring.should_receive(:put).and_raise( CouchSpring::RequestFailed )
+        @db.save.should == false
+        @db.new?.should == true
+      end
+    
+      it 'is not new if the save fails because it already exists' do
+        @db.save.should_not == false
+        db = Database.new(@db.name)
+        db.save!
+        db.new?.should == false
+      end
     end
   end
 

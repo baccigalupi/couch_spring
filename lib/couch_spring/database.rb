@@ -1,6 +1,6 @@
 module CouchSpring
   class Database
-    attr_accessor :server, :name
+    attr_accessor :server, :name, :state
 
     DEFAULT_NAME = 'ruby'
 
@@ -14,6 +14,7 @@ module CouchSpring
     #
     # @api public
     def initialize( *args )
+      self.state = :new
       if args.size > 1
         opts = Gnash.new(args.last)
         opts[:name] = args.first
@@ -32,13 +33,46 @@ module CouchSpring
     def ==( other_db )
       other_db.is_a?(Database) && other_db.uri == uri
     end
+    
+    def ensure_state
+      if state.nil?
+        begin
+          CouchSpring.get( uri )
+          self.state = :saved
+        rescue CouchSpring::ResourceNotFound
+          self.state = :new
+        end
+      end
+      state
+    end
+    
+    # Tracks and checks whether the database is new or saved to the server already.
+    #
+    # @return [true, false] depending on whether the database already exists in CouchSpring land
+    #
+    # @api public
+    def new?
+      ensure_state == :new
+    end
+    
+    # Checks to see if the database exists on the couchdb server.
+    #
+    # @return [true, false] depending on whether the database already exists in CouchSpring land
+    #
+    # @api public
+    def exist?
+      ensure_state == :saved
+    end
+    alias exists? exist?
 
     def save( swallow_exception=true )
       begin
         CouchSpring.put( uri )
+        self.state = :saved
       rescue Exception => e
-        if e.message.match(/Precondition Failed/i) # ignore database already exists errors ...
-
+        if e.message.match(/Precondition Failed/i) 
+          # database already exists, no need to raise an error
+          self.state = :saved
         else
           if swallow_exception
             return false
@@ -81,21 +115,6 @@ module CouchSpring
       create( opts, false )
     end
 
-    # Checks to see if the database exists on the couchdb server.
-    #
-    # @return [true, false] depending on whether the database already exists in CouchSpring land
-    #
-    # @api public
-    def exist?
-      begin
-        CouchSpring.get( uri )
-        true
-      rescue CouchSpring::ResourceNotFound
-        false
-      end
-    end
-    alias exists? exist?
-
     # GET the database info from CouchSpring
     def info
       CouchSpring.get( uri ) rescue nil
@@ -112,7 +131,7 @@ module CouchSpring
     # @raise Exception related to request failure that is not a ResourceNotFound error.
     def delete
       begin
-        CouchSpring.delete( uri )
+        delete!
       rescue CouchSpring::ResourceNotFound
         false
       end
@@ -124,7 +143,9 @@ module CouchSpring
     # @return A JSON response on success.
     # @raise Exception related to request failure or ResourceNotFound.
     def delete!
-      CouchSpring.delete( uri )
+      response = CouchSpring.delete( uri )
+      self.state = :deleted
+      response
     end
     
     # options:
