@@ -306,111 +306,121 @@ describe Database do
       target.delete
     end
     
-    it 'should work without error' do
-      @db.save!
-      lambda { @db.replicate(:my_target, :create_target => true) }.should_not raise_error
-    end    
+    describe 'integration' do
+      it 'should work without error' do
+        @db.save!
+        db = Database.create!(:my_target)
+        lambda { @db.replicate(:my_target) }.should_not raise_error
+      end
+      
+      it 'should create the target if it does not exist' do
+        @db.save!
+        lambda { @db.replicate(:new_target, :create => true) }.should_not raise_error
+      end
+    end
     
-    it 'should replicate on the same server when provided a database name' do
-      data = {
-        'source' => "#{@db.name}",
-        'target' => "#{@db.server.uri}/my_target"
-      }
-      CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
-      @db.save!
-      @db.replicate(:my_target)
-    end 
+    describe 'mocked unit' do
+      it 'should replicate on the same server when provided a database name' do
+        data = {
+          'source' => "#{@db.name}",
+          'target' => "#{@db.server.uri}/my_target"
+        }
+        CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
+        @db.save!
+        @db.replicate(:my_target)
+      end 
 
-    it 'should replicate to another server' do
-      remote_db = Database.new(
-        :name => :remote_database,
-        :server => Server.new(:domain => 'myremoteserver.com')
-      )
-      data = {
-        'source' => "#{@db.name}",
-        'target' => "#{remote_db.uri}"
-      }
-      CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
-      @db.save!
-      @db.replicate(remote_db)
-    end
+      it 'should replicate to another server' do
+        remote_db = Database.new(
+          :name => :remote_database,
+          :server => Server.new(:domain => 'myremoteserver.com')
+        )
+        data = {
+          'source' => "#{@db.name}",
+          'target' => "#{remote_db.uri}"
+        }
+        CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
+        @db.save!
+        @db.replicate(remote_db)
+      end
     
-    it 'should create the target database when that option is passed' do
-      data = {
-        'source' => @db.name,
-        'target' => "#{@db.server.uri}/my_target",
-        'create_target' => true
-      }
-      CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
-      @db.save!
-      @db.replicate(:my_target, {:create => true})
-    end
+      it 'should create the target database when that option is passed' do
+        data = {
+          'source' => @db.name,
+          'target' => "#{@db.server.uri}/my_target",
+          'create_target' => true
+        }
+        CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
+        @db.save!
+        @db.replicate(:my_target, {:create => true})
+      end
     
-    it 'should do it continuously, when asked nicely' do
-      data = {
-        'source' => "#{@db.name}",
-        'target' => "#{@db.server.uri}/my_target",
-        'continuous' => true
-      }
-      CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
-      @db.save!
-      @db.replicate(:my_target, {:continuous => true}) 
-    end
+      it 'should do it continuously, when asked nicely' do
+        data = {
+          'source' => "#{@db.name}",
+          'target' => "#{@db.server.uri}/my_target",
+          'continuous' => true
+        }
+        CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
+        @db.save!
+        @db.replicate(:my_target, {:continuous => true}) 
+      end
     
-    it 'should cancel replication when that option is passed in' do
-      data = {
-        'source' => "#{@db.name}",
-        'target' => "#{@db.server.uri}/my_target",
-        'cancel' => true
-      }
-      CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
-      @db.save!
-      @db.replicate(:my_target, {:cancel => true})
-    end
+      it 'should cancel replication when that option is passed in' do
+        data = {
+          'source' => "#{@db.name}",
+          'target' => "#{@db.server.uri}/my_target",
+          'cancel' => true
+        }
+        CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
+        @db.save!
+        @db.replicate(:my_target, {:cancel => true})
+      end
     
-    it 'should use the proxy option when requested' do
-      data = {
-        'source' => "#{@db.name}",
-        'target' => "#{@db.server.uri}/my_target",
-        'proxy' => 'http://proxier.org'
-      }
-      CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
-      @db.save!
-      @db.replicate(:my_target, {:proxy => "http://proxier.org"})
-    end
+      it 'should use the proxy option when requested' do
+        data = {
+          'source' => "#{@db.name}",
+          'target' => "#{@db.server.uri}/my_target",
+          'proxy' => 'http://proxier.org'
+        }
+        CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
+        @db.save!
+        @db.replicate(:my_target, {:proxy => "http://proxier.org"})
+      end
     
-    it 'should filter via the design document\'s filter' do
-      data = {
-        'source' => "#{@db.name}",
-        'target' => "#{@db.server.uri}/my_target",
-        'filter' => 'my_filter_name'
-      }
-      CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
-      @db.save!
-      @db.replicate(:my_target, {:filter => "my_filter_name"})
-    end
+      it 'should filter via the design document\'s filter' do
+        data = {
+          'source' => "#{@db.name}",
+          'target' => "#{@db.server.uri}/my_target",
+          'filter' => 'my_filter_name'
+        }
+        CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
+        @db.save!
+        @db.replicate(:my_target, {:filter => "my_filter_name"})
+      end
     
-    it 'should use the query params when provided' do
-      data = {
-        'source' => "#{@db.name}",
-        'target' => "#{@db.server.uri}/my_target",
-        'filter' => 'my_filter_name',
-        'query_params' => ['foo', 'bar', 'etc']
-      }
-      CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
-      @db.save!
-      @db.replicate(:my_target, {:filter => "my_filter_name", :params => ['foo', 'bar', 'etc']})
-    end
+      it 'should use the query params when provided' do
+        data = {
+          'source' => "#{@db.name}",
+          'target' => "#{@db.server.uri}/my_target",
+          'filter' => 'my_filter_name',
+          'query_params' => ['foo', 'bar', 'etc']
+        }
+        CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
+        @db.save!
+        @db.replicate(:my_target, {:filter => "my_filter_name", :params => ['foo', 'bar', 'etc']})
+      end
     
-    it 'should filter on doc_ids when provided' do
-      data = {
-        'source' => "#{@db.name}",
-        'target' => "#{@db.server.uri}/my_target",
-        'doc_ids' => ['1', '2', '3']
-      }
-      CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
-      @db.save!
-      @db.replicate(:my_target, {:doc_ids => ['1','2','3']})
+      it 'should filter on doc_ids when provided' do
+        data = {
+          'source' => "#{@db.name}",
+          'target' => "#{@db.server.uri}/my_target",
+          'doc_ids' => ['1', '2', '3']
+        }
+        CouchSpring.should_receive(:post).with("#{@db.server.uri}/_replicate/", data)
+        @db.save!
+        @db.replicate(:my_target, {:doc_ids => ['1','2','3']})
+      end
     end
   end         
     
