@@ -10,6 +10,8 @@ describe CouchSpring::Attachments do
     @doc.delete!
     @attachments = Attachments.new( @doc )
     @file = File.new( File.dirname( __FILE__ ) + '/attachments/image_attach.png' )
+    @data = @file.read
+    @file.rewind
   end
    
   describe 'initialization' do
@@ -32,7 +34,7 @@ describe CouchSpring::Attachments do
     end       
   end     
   
-  describe 'attachment_uri' do 
+  describe 'attachment uri' do 
     it 'should raise an error if the document has no id' do
       attachments = Attachments.new( Document.new )
       attachments.add( :my_file, @file )
@@ -62,7 +64,7 @@ describe CouchSpring::Attachments do
     end      
   end   
   
-  describe 'adding attachments' do 
+  describe 'adding attachments' do
     it 'should have a method #add that takes a name and a file' do 
       @attachments.should respond_to( :add )
       lambda{ @attachments.add }.should raise_error( ArgumentError )
@@ -114,30 +116,23 @@ describe CouchSpring::Attachments do
       @attachments.add!( :my_file, @file )
       @attachments.delete( :my_file ) # just deletes the local reference
       @attachments.should_receive(:get!)
+      
       @attachments.get(:my_file) 
     end 
     
     it 'should return a Tempfile from the database' do
       @attachments.add!( :my_file, @file )
       @attachments.delete( :my_file ) # just deletes the local reference
+      
       @attachments.get(:my_file).class.should == Tempfile
     end
     
     it 'should have the same data as the original file' do 
       @attachments.add!( :my_file, @file )
       file = @attachments.get!(:my_file)
-      read_binary(file).should == read_binary(@file)
-      # file.read.should == @file.read
+      file.read.should == @file.read
     end
-    
-    it 'should stream an attachment' do
-      @attachments.add!( :my_file, @file )
-      data = @attachments.get!( :my_file, :streamable => true ) 
-      data.should_not be_nil
-      data.should_not be_empty
-      data.should == read_binary(@file)
-    end         
-  end     
+  end
   
   describe 'packing all files' do 
     before(:each) do

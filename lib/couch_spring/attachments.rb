@@ -75,37 +75,27 @@ module CouchSpring
     # @return [File, nil] File for that name, or nil if not found in hash or in database
     #
     # @api public
-    def get( name, stream=false )
-      file = self[name] 
-      unless file
-        file = get!( name, stream )
-      end
-      file.rewind if file # just in case of previous streaming
-      file  
+    def get( name )
+      self[name] || get!( name )
     end  
     
     # Gets an attachment from the database. Stores it in the hash.
     #
     # @param [String, Symbol] Name of the attachment
-    # @param [true, false] Stream boolean flag indicating whether the data should be converted to 
-    #   a file or kept as a stream
     # @return [File, nil] File for that name, or nil if not found in the database 
-    # @raise Any error encountered on retrieval of the attachment, json, http_client, Aqua etc
+    # @raise Any error encountered on retrieval of the attachment, json, http_client etc
     # 
     # @todo make this more memory favorable, maybe streaming/saving in a max number of bytes
     # @api public
-    def get!( name, stream=false ) 
-      file = nil
-      response = CouchSpring.get( uri_for( name, false ), :streamable =>true ) rescue nil
-      data = response && response.respond_to?(:keys) ? Base64.decode64( response['data'] ) : nil
-      if data || response
-        file = Tempfile.new( CGI.escape( name.to_s ) ) 
-        file.binmode if file.respond_to?( :binmode )
-        data ? file.write( data ) : file.write( response )
-        file.rewind 
-        self[name] = file
-      end  
-      stream ? file.read : file
+    def get!( name ) 
+      response = CouchSpring.get( uri_for( name, false ) )
+      unless data = Base64.decode64( response['data'] )
+        raise CouchSpring::RequestFailed, 'Attachment has no data'
+      end
+      file = Tempfile.new( CGI.escape( name.to_s ) ) 
+      file.write( data )
+      file.rewind 
+      self[name] = file
     end  
     
     # Constructs the standalone attachment uri for PUT and DELETE actions.

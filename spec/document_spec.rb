@@ -21,7 +21,6 @@ describe Document  do
         Thing.create!( :foo => 'bar' ),
         Thing.create!( :bar => 'zar' )
       ]
-      gets
       Thing.count.should == old_count + 2
     end 
       
