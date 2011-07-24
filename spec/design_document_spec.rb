@@ -1,23 +1,16 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
-# Conveniences for typing with tests ... 
-Database =  CouchSpring::Database unless defined?( Database )
-Server =    CouchSpring::Server unless defined?( Server )
-Design =    CouchSpring::DesignDocument unless defined?( Design )
-Document =  CouchSpring::Document unless defined?( Document )
-ResultSet = CouchSpring::ResultSet unless defined?( ResultSet )
-
 describe CouchSpring::DesignDocument do 
   before do
-    @server = Server.new
+    @server = CouchSpring::Server.new
     @server.clear!
     
-    @db = Database.new(:user)
+    @db = CouchSpring::Database.new(:user)
     
     @name = 'User'
-    @design = Design.new(:name => @name, :database => @db) 
+    @design = CouchSpring::DesignDocument.new(:name => @name, :database => @db) 
     
-    class User < Document
+    class User < CouchSpring::Document
     end
     User.database = @db
     User.database.name.should == 'user'   
@@ -25,11 +18,11 @@ describe CouchSpring::DesignDocument do
   
   describe 'initialization' do
     it 'requires a name' do
-      lambda{ Design.new(:database => @db) }.should raise_error(ArgumentError)
+      lambda{ CouchSpring::DesignDocument.new(:database => @db) }.should raise_error(ArgumentError)
     end
     
     it 'requires a database' do
-      lambda{ Design.new(:name => @name) }.should raise_error(ArgumentError)
+      lambda{ CouchSpring::DesignDocument.new(:name => @name) }.should raise_error(ArgumentError)
     end
     
     it 'will set both the name and a database' do
@@ -50,35 +43,35 @@ describe CouchSpring::DesignDocument do
     
     it 'get! should require a database' do
       @design.save!
-      lambda{ Design.get!(:name => @design.name) }.should raise_error( ArgumentError )
-      Design.get!(:name => @design.name, :database => @db).should == @design.reload
+      lambda{ CouchSpring::DesignDocument.get!(:name => @design.name) }.should raise_error( ArgumentError )
+      CouchSpring::DesignDocument.get!(:name => @design.name, :database => @db).should == @design.reload
     end
     
     it 'get should require a database' do
       @design.save!
-      lambda{ Design.get!(:name => @design.name) }.should raise_error( ArgumentError )
-      Design.get(:name => @design.name, :database => @db).should == @design.reload
+      lambda{ CouchSpring::DesignDocument.get!(:name => @design.name) }.should raise_error( ArgumentError )
+      CouchSpring::DesignDocument.get(:name => @design.name, :database => @db).should == @design.reload
     end
     
     it 'delete! requires a database' do
       @design.save!
       @design.should_not be_new
-      lambda{ Design.delete!(:name => @design.name) }.should raise_error( ArgumentError )
-      lambda{ Design.delete!(:name => @design.name, :database => @db) }.should_not raise_error
+      lambda{ CouchSpring::DesignDocument.delete!(:name => @design.name) }.should raise_error( ArgumentError )
+      lambda{ CouchSpring::DesignDocument.delete!(:name => @design.name, :database => @db) }.should_not raise_error
     end
     
     it 'delete! requires a database' do
       @design.save!
       @design.should_not be_new
-      lambda{ Design.delete!(:name => @design.name) }.should raise_error( ArgumentError )
-      Design.delete!(:name => @design.name, :database => @db).should_not == false
+      lambda{ CouchSpring::DesignDocument.delete!(:name => @design.name) }.should raise_error( ArgumentError )
+      CouchSpring::DesignDocument.delete!(:name => @design.name, :database => @db).should_not == false
     end
   end
   
   describe 'database' do
     it 'can set the database on the instance level' do
       @design.database.should == @db
-      @design.database = Database.new(:new_foo)
+      @design.database = CouchSpring::Database.new(:new_foo)
       @design.database.name.should == 'new_foo'
       @design.database.new?.should == false
     end
@@ -86,7 +79,7 @@ describe CouchSpring::DesignDocument do
   
   describe 'views' do
     before(:each) do
-      ResultSet.document_class = Document
+      CouchSpring::ResultSet.document_class = CouchSpring::Document
     end
       
     it 'should be a Hash-like object' do 
@@ -195,7 +188,7 @@ describe CouchSpring::DesignDocument do
     
     it 'should throw an reasonable error if the class corresponding to the _class attribute is not found' do 
       @design.should_receive(:raw_query).and_return([{'class_' => 'NonExistent'}])
-      lambda{ @design.query( :index ) }.should raise_error( Design::MissingClass, "NonExistent class not found. Maybe this class name has been changed. Or maybe you meant to use the design document's #raw_query method to return hashes instead of objects.")
+      lambda{ @design.query( :index ) }.should raise_error( CouchSpring::DesignDocument::MissingClass, "NonExistent class not found. Maybe this class name has been changed. Or maybe you meant to use the design document's #raw_query method to return hashes instead of objects.")
     end
     
     it 'should limit query results' do

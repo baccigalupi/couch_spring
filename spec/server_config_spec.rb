@@ -1,7 +1,5 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
-Server = CouchSpring::Server unless defined?( Server )
-
 describe CouchSpring::ServerConfig do
   before do
     CouchSpring.clear_servers
@@ -55,7 +53,7 @@ describe CouchSpring::ServerConfig do
     
     it 'should add servers when a symbol is requested that is not found as a servers key' do 
       CouchSpring.server # adds the default
-      server = Server.new(:domain => 'userlandia.net')
+      server = CouchSpring::Server.new(:domain => 'userlandia.net')
       CouchSpring.server(:users, server)
       CouchSpring.servers.size.should == 2
       CouchSpring.servers[:users].should == server
@@ -63,7 +61,7 @@ describe CouchSpring::ServerConfig do
     
     it 'should not duplicate servers' do
       CouchSpring.server # adds the default
-      server = Server.new(:domain => 'userlandia.net')
+      server = CouchSpring::Server.new(:domain => 'userlandia.net')
       CouchSpring.server(:users, server) 
       
       # repeat
@@ -75,7 +73,7 @@ describe CouchSpring::ServerConfig do
     
     it 'should list the servers in use' do
       CouchSpring.server # adds the default
-      server = Server.new(:domain => 'userlandia.net')
+      server = CouchSpring::Server.new(:domain => 'userlandia.net')
       CouchSpring.server(:users, server)
        
       CouchSpring.servers.each do |key, server|
@@ -85,7 +83,7 @@ describe CouchSpring::ServerConfig do
     
     it 'should be indifferent to symbol string usage' do 
       CouchSpring.server
-      server = Server.new(:domain => 'userlandia.new')
+      server = CouchSpring::Server.new(:domain => 'userlandia.new')
       CouchSpring.server(:users, server)
       
       CouchSpring.server('users').should == server

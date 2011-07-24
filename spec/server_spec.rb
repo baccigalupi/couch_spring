@@ -1,7 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
  
-Server = CouchSpring::Server unless defined?( Server )
-describe Server do
+describe CouchSpring::Server do
   before :all do
     CouchSpring.clear_servers
     CouchSpring.repository = nil
@@ -10,7 +9,7 @@ describe Server do
   end
   
   before :each do
-    @server = Server.new
+    @server = CouchSpring::Server.new
     @server.clear!
   end
   
@@ -20,14 +19,14 @@ describe Server do
     end
     
     it 'should have a settable domain' do 
-      server = Server.new(:domain => 'newhost.com')
+      server = CouchSpring::Server.new(:domain => 'newhost.com')
       server.uri.should == 'http://newhost.com'
     end
     
     it 'should have a settable port' do
-      server = Server.new(:port => '8888')
+      server = CouchSpring::Server.new(:port => '8888')
       server.uri.should == "http://127.0.0.1:8888"
-      server = Server.new(:port => 5432)
+      server = CouchSpring::Server.new(:port => 5432)
       server.uri.should == "http://127.0.0.1:5432"
     end
     
@@ -36,19 +35,19 @@ describe Server do
     end
     
     it 'should have settable protocol' do
-      server = Server.new(:protocol => 'https')
+      server = CouchSpring::Server.new(:protocol => 'https')
       server.uri.should == "https://127.0.0.1:5984"
     end 
     
     it 'should have credentials if provided' do
-      server = Server.new(:username => 'kane', :password => 'secret')
+      server = CouchSpring::Server.new(:username => 'kane', :password => 'secret')
       server.uri.should == 'http://kane:secret@127.0.0.1:5984'
     end 
   end 
   
   describe 'equality' do
     it 'should be equal if the uri is the same' do
-      server = Server.new
+      server = CouchSpring::Server.new
       server.uri.should == @server.uri 
       server.should == @server
     end
@@ -56,7 +55,7 @@ describe Server do
   
   describe 'uuids' do
     it 'should have a settable limit' do
-      server = Server.new(:uuid_limit => 100)
+      server = CouchSpring::Server.new(:uuid_limit => 100)
       server.uuid_limit.should == 100
     end
   

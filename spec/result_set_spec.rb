@@ -1,20 +1,14 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
-# Conveniences for typing with tests ... 
-Database =  CouchSpring::Database unless defined?( Database )
-Design =    CouchSpring::DesignDocument unless defined?( Design ) 
-Document =  CouchSpring::Document unless defined?( Document ) 
-ResultSet = CouchSpring::ResultSet unless defined?( ResultSet )
-
-class Docintalk < Document 
+class Docintalk < CouchSpring::Document 
   def talk 
     'Hello, I am a Docintalk'
   end  
 end  
 
-describe ResultSet do
+describe CouchSpring::ResultSet do
   before(:each) do
-    ResultSet.document_class = nil # resets for all theses tests
+    CouchSpring::ResultSet.document_class = nil # resets for all theses tests
     # These are sample returns from couchdb for a view query
     # the first is when the include_document=true is omitted
     # the next is when it is included
@@ -45,13 +39,13 @@ describe ResultSet do
        "offset"=>1, 
        "total_rows"=>5
      }
-     @docless = ResultSet.new( @no_docs )
-     @docfull = ResultSet.new( @with_docs )     
+     @docless = CouchSpring::ResultSet.new( @no_docs )
+     @docfull = CouchSpring::ResultSet.new( @with_docs )     
   end
   
   it 'should have a default document class accessor' do
-    ResultSet.should respond_to(:document_class)
-    ResultSet.should respond_to(:document_class=)
+    CouchSpring::ResultSet.should respond_to(:document_class)
+    CouchSpring::ResultSet.should respond_to(:document_class=)
   end    
   
   it 'should have an offset' do
@@ -78,13 +72,13 @@ describe ResultSet do
   end
   
   it 'it should convert docs to the default document class if no instance level document class is available' do 
-    ResultSet.document_class = Document
-    docs = ResultSet.new( @with_docs )
-    docs.first.class.should == Document
+    CouchSpring::ResultSet.document_class = CouchSpring::Document
+    docs = CouchSpring::ResultSet.new( @with_docs )
+    docs.first.class.should == CouchSpring::Document
   end
   
   it 'should use instance level document class when available' do
-    docs = ResultSet.new( @with_docs, Docintalk )
+    docs = CouchSpring::ResultSet.new( @with_docs, Docintalk )
     docs.document_class.should == Docintalk
     docs.first.class.should == Docintalk
   end      

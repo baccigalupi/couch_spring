@@ -1,14 +1,10 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
-# Conveniences for typing with tests ... 
-Attachments =   CouchSpring::Attachments unless defined?( Attachments )
-Document =      CouchSpring::Document unless defined?( Document )
-
 describe CouchSpring::Attachments do
   before(:each) do
-    @doc = Document.new(:id => 'attachments_doc')
+    @doc = CouchSpring::Document.new(:id => 'attachments_doc')
     @doc.delete!
-    @attachments = Attachments.new( @doc )
+    @attachments = CouchSpring::Attachments.new( @doc )
     @file = File.new( File.dirname( __FILE__ ) + '/attachments/image_attach.png' )
     @data = @file.read
     @file.rewind
@@ -16,17 +12,17 @@ describe CouchSpring::Attachments do
    
   describe 'initialization' do
     it 'should initialize with a document uri' do
-      lambda{ Attachments.new }.should raise_error( ArgumentError )
-      lambda{ Attachments.new( @doc )}.should_not raise_error( ArgumentError )
+      lambda{ CouchSpring::Attachments.new }.should raise_error( ArgumentError )
+      lambda{ CouchSpring::Attachments.new( @doc )}.should_not raise_error( ArgumentError )
     end
   
     it 'should initialize with an optional hash' do
-      lambda{ Attachments.new( @doc, {:my_file => @file})}.should_not raise_error( ArgumentError )
+      lambda{ CouchSpring::Attachments.new( @doc, {:my_file => @file})}.should_not raise_error( ArgumentError )
     end
     
     it 'when initializing with a hash, it should check that each key is a string and each value is a file' do
-      lambda{ Attachments.new( @doc, { 1 => @file }) }.should raise_error( ArgumentError  )
-      lambda{ Attachments.new( @doc, {:my_file => 1}) }.should raise_error( ArgumentError )
+      lambda{ CouchSpring::Attachments.new( @doc, { 1 => @file }) }.should raise_error( ArgumentError  )
+      lambda{ CouchSpring::Attachments.new( @doc, {:my_file => 1}) }.should raise_error( ArgumentError )
     end
     
     it 'document should be an object reference to the original document, not a dup' do 
@@ -36,7 +32,7 @@ describe CouchSpring::Attachments do
   
   describe 'attachment uri' do 
     it 'should raise an error if the document has no id' do
-      attachments = Attachments.new( Document.new )
+      attachments = CouchSpring::Attachments.new( CouchSpring::Document.new )
       attachments.add( :my_file, @file )
       lambda{ attachments.uri_for( :my_file ) }.should raise_error( ArgumentError )
     end 

@@ -1,16 +1,12 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
-Database =      CouchSpring::Database     unless defined?( Database )
-DocumentBase =  CouchSpring::DocumentBase unless defined?( DocumentBase )
-Attachments =   CouchSpring::Attachments  unless defined?( Attachments )
-
-describe DocumentBase do 
+describe CouchSpring::DocumentBase do 
   before do
     @server = CouchSpring::Server.new
     @server.clear!
-    DocumentBase.database(:clear)
+    CouchSpring::DocumentBase.database(:clear)
     
-    @db = Database.new # default
+    @db = CouchSpring::Database.new # default
     
     @params = {
       :id => 'my_slug/thaz-right',
@@ -18,7 +14,7 @@ describe DocumentBase do
       :more => "my big stuff"
     }
     
-    @doc = DocumentBase.new( @params ) 
+    @doc = CouchSpring::DocumentBase.new( @params ) 
   end  
   
   describe 'initialization' do
@@ -41,71 +37,71 @@ describe DocumentBase do
     end 
     
     it 'should set the rev when _rev param is passed in' do
-      doc = DocumentBase.new( @params.merge(:_rev => 'my_rev') )
+      doc = CouchSpring::DocumentBase.new( @params.merge(:_rev => 'my_rev') )
       doc.rev.should_not be_nil
       doc.rev.should == 'my_rev'
     end  
   end
   
   describe 'database' do
-    class SubDoc < DocumentBase; end
+    class SubDoc < CouchSpring::DocumentBase; end
      
     before do
-      @things_db = Database.new(:name => 'things')
+      @things_db = CouchSpring::Database.new(:name => 'things')
     end
     
     describe 'class level' do 
       describe 'reading' do
         it 'should have a default database' do
-          DocumentBase.database.should == @db
+          CouchSpring::DocumentBase.database.should == @db
         end
       
         it 'the default database should exist' do
-          DocumentBase.database.exist?.should be_true
+          CouchSpring::DocumentBase.database.exist?.should be_true
         end
       end
        
       describe 'setting' do
         it 'should use and save a custom database' do
-          DocumentBase.database = @things_db
-          DocumentBase.database.should == @things_db
-          DocumentBase.database.exist?.should be_true
+          CouchSpring::DocumentBase.database = @things_db
+          CouchSpring::DocumentBase.database.should == @things_db
+          CouchSpring::DocumentBase.database.exist?.should be_true
         end 
       
         it 'should have a custom database when passed a symbol' do
-          DocumentBase.database = @db
-          DocumentBase.database.should_not == @things_db
-          DocumentBase.database = :things 
-          DocumentBase.database.should == @things_db
+          CouchSpring::DocumentBase.database = @db
+          CouchSpring::DocumentBase.database.should_not == @things_db
+          CouchSpring::DocumentBase.database = :things 
+          CouchSpring::DocumentBase.database.should == @things_db
         end
         
         it 'should have a custom database when passed a string' do
-          DocumentBase.database = @db
-          DocumentBase.database.should_not == @things_db
-          DocumentBase.database = 'things' 
-          DocumentBase.database.should == @things_db
+          CouchSpring::DocumentBase.database = @db
+          CouchSpring::DocumentBase.database.should_not == @things_db
+          CouchSpring::DocumentBase.database = 'things' 
+          CouchSpring::DocumentBase.database.should == @things_db
         end
       end
       
       describe 'clearing' do
         it 'should work when "getter" method recieves the :clear symbol' do
-          DocumentBase.database.should == @db
-          DocumentBase.database.exist?.should == true
-          DocumentBase.database(:clear)
-          DocumentBase.instance_variable_get('@db').should == nil
+          CouchSpring::DocumentBase.database.should == @db
+          CouchSpring::DocumentBase.database.exist?.should == true
+          CouchSpring::DocumentBase.database(:clear)
+          CouchSpring::DocumentBase.instance_variable_get('@db').should == nil
         end
       end
       
       describe 'inheritance' do
         it 'should inheirit its default database from the superclass' do
-          DocumentBase.database = @things_db 
+          CouchSpring::DocumentBase.database = @things_db 
           SubDoc.database(:clear)
-          DocumentBase.database = @things_db
+          CouchSpring::DocumentBase.database = @things_db
           SubDoc.database.should == @things_db
         end
       
         it 'should have different database from the subclass on customization' do
-          DocumentBase.database.should == @db
+          CouchSpring::DocumentBase.database.should == @db
           SubDoc.database = @things_db 
           SubDoc.database.should_not == @db
           SubDoc.database.should == @things_db  
@@ -128,22 +124,22 @@ describe DocumentBase do
     end
     
     it 'should reflect the non-default database name' do
-      db = Database.create('my_class') 
-      DocumentBase.database = db
+      db = CouchSpring::Database.create('my_class') 
+      CouchSpring::DocumentBase.database = db
       @doc.uri.should == "#{db.uri}/my_slug%2Fthaz-right"
     end
     
     it 'should use a server generated uuid for the id if an id is not provided' do
       params = @params.dup
       params.delete(:id)
-      doc = DocumentBase.new( params )
+      doc = CouchSpring::DocumentBase.new( params )
       doc.uri.should match(/\A#{doc.database.uri}\/[a-f0-9]*\z/)
     end  
   end 
   
   describe 'saving' do
     before(:each) do
-      DocumentBase.database = @db 
+      CouchSpring::DocumentBase.database = @db 
     end  
     
     describe "#save" do
@@ -154,7 +150,7 @@ describe DocumentBase do
     
       it 'return itself if it worked' do
         return_value = @doc.save
-        return_value.class.should == DocumentBase 
+        return_value.class.should == CouchSpring::DocumentBase 
         return_value.id.should == @doc.id
       end
     
@@ -181,20 +177,20 @@ describe DocumentBase do
     
     describe '#create' do 
       it 'should return itself when successful' do
-        doc = DocumentBase.create(@params)
-        doc.class.should == DocumentBase
+        doc = CouchSpring::DocumentBase.create(@params)
+        doc.class.should == CouchSpring::DocumentBase
         doc.rev.should_not be_nil
       end
     
       it 'should return false when not successful' do 
         @doc.save! # database should already have a document with this id and a non-nil rev
-        doc = DocumentBase.create( @params )
+        doc = CouchSpring::DocumentBase.create( @params )
         doc.should == false
       end
         
       it 'the ! form should raise an error when not successful' do
         @doc.save!
-        lambda{ DocumentBase.create!( @params ) }.should raise_error( CouchSpring::Conflict )
+        lambda{ CouchSpring::DocumentBase.create!( @params ) }.should raise_error( CouchSpring::Conflict )
       end  
     end
     
@@ -202,7 +198,7 @@ describe DocumentBase do
       @doc.save!
       @doc[:noodle] = 'spaghetti'
       reloaded = @doc.reload 
-      reloaded.class.should == DocumentBase
+      reloaded.class.should == CouchSpring::DocumentBase
       @doc[:noodle].should be_nil
     end
     
@@ -238,34 +234,34 @@ describe DocumentBase do
   describe 'getting' do
     it 'should get a document from its id' do 
       @doc.save!
-      DocumentBase.get( @doc.id ).should_not == false
+      CouchSpring::DocumentBase.get( @doc.id ).should_not == false
     end 
     
     it 'should return false if the document is not found' do  
-      DocumentBase.get( 'not_an_id' ).should be_false
+      CouchSpring::DocumentBase.get( 'not_an_id' ).should be_false
     end 
     
     it '#get! should raise an error when not found' do
-      lambda{ DocumentBase.get!( 'yup_not_here' ) }.should raise_error
+      lambda{ CouchSpring::DocumentBase.get!( 'yup_not_here' ) }.should raise_error
     end   
     
     it 'returned document should have an id' do
       @doc.save!
-      document = DocumentBase.get!( @doc.id )
+      document = CouchSpring::DocumentBase.get!( @doc.id )
       document.id.should == @doc.id
     end
     
     it 'returned document should have an id even if not explicitly set' do
-      doc = DocumentBase.new(:this => 'that')
+      doc = CouchSpring::DocumentBase.new(:this => 'that')
       doc.save!
-      retrieved = DocumentBase.get!( doc.id )
+      retrieved = CouchSpring::DocumentBase.get!( doc.id )
       retrieved.id.should_not be_nil
       retrieved.id.should_not be_empty
     end 
     
     it 'returned document should have a rev' do
       @doc.save!
-      document = DocumentBase.get!( @doc.id )
+      document = CouchSpring::DocumentBase.get!( @doc.id )
       document.rev.should_not be_nil
     end     
   end  
@@ -302,16 +298,16 @@ describe DocumentBase do
     it 'should have a class method #delete that takes an id and deletes the related document' do
       @doc.save!
       lambda{ CouchSpring.get( CouchSpring::Document.uri_for(@doc.id) ) }.should_not raise_error
-      DocumentBase.delete( @doc.id ) 
+      CouchSpring::DocumentBase.delete( @doc.id ) 
       lambda{ CouchSpring.get( CouchSpring::Document.uri_for(@doc.id) ) }.should raise_error
     end 
     
     it 'class method should return false on failure' do
-      DocumentBase.delete('not_there').should == false
+      CouchSpring::DocumentBase.delete('not_there').should == false
     end  
     
     it 'should have a #delete! method that raises an error on failure' do
-      lambda{ DocumentBase.delete!('not_there') }.should raise_error
+      lambda{ CouchSpring::DocumentBase.delete!('not_there') }.should raise_error
     end     
   end  
   
@@ -401,7 +397,7 @@ describe DocumentBase do
     end
        
     it 'should have an accessor for storing attachments' do 
-      @doc.attachments.should == Attachments.new( @doc )
+      @doc.attachments.should == CouchSpring::Attachments.new( @doc )
     end
     
     it 'should add attachments' do 
