@@ -50,27 +50,20 @@ describe Document  do
       Document.design_name.should == 'my_app'
     end  
     
-    it 'should create a design document if there is a design_name but the design document exists' do 
-      CouchSpring::DesignDocument.delete( 'User' ) # in case it exists
+    it 'should create a design document if there is a design_name but the design document exists' do
+      CouchSpring::DesignDocument.delete!( :name => 'User', :database => Thing.database )
       
       Document.design_name = 'User'
-      lambda{ CouchSpring::DesignDocument.get!( 'User' ) }.should raise_error
+      lambda{ CouchSpring::DesignDocument.get!( :name => 'User', :database => Thing.database ) }.should raise_error
       Document.design_document.should_not == false
-      lambda{ CouchSpring::DesignDocument.get!( 'User') }.should_not raise_error 
+      lambda{ CouchSpring::DesignDocument.get!( :name => 'User', :database => Thing.database ) }.should_not raise_error 
     end
-      
-    
-    it 'should have the same database as the document class' do
-      database = CouchSpring::Database.new(:name => 'things')  
-      Document.database = database
-      Document.design_document.database.should == database
-    end  
     
     it 'should retrieve a design document if there is a design_name and the design document exists' do
-      CouchSpring::DesignDocument.delete( 'User' )
-      CouchSpring::DesignDocument.create!( :name => 'User' )
+      CouchSpring::DesignDocument.delete!( :name => 'User', :database => Thing.database )
+      CouchSpring::DesignDocument.create!( :name => 'User', :database => Thing.database )
       # ensures that the record exists, before the real test
-      lambda{ CouchSpring::DesignDocument.get( 'User') }.should_not raise_error 
+      lambda{ CouchSpring::DesignDocument.get( :name => 'User', :database => Thing.database) }.should_not raise_error 
       Document.design_document.should_not be_nil 
       Document.design_document.database.should == Document.database
     end  

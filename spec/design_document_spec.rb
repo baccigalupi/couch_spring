@@ -8,33 +8,81 @@ Document =  CouchSpring::Document unless defined?( Document )
 ResultSet = CouchSpring::ResultSet unless defined?( ResultSet )
 
 describe CouchSpring::DesignDocument do 
-  before(:each) do
-    @name = 'User'
-    @design = Design.new(:name => @name) 
-    @design.delete!       
-  end  
+  before do
+    @server = Server.new
+    @server.clear!
     
-  describe 'new and create' do
-    it 'should require a name to build the uri' do
-      design = Design.new
-      lambda{ design.uri }.should raise_error
-      lambda{ @design.uri }.should_not raise_error
+    @db = Database.new(:user)
+    
+    @name = 'User'
+    @design = Design.new(:name => @name, :database => @db) 
+    
+    class User < Document
     end
-      
+    User.database = @db
+    User.database.name.should == 'user'   
+  end 
+  
+  describe 'initialization' do
+    it 'requires a name' do
+      lambda{ Design.new(:database => @db) }.should raise_error(ArgumentError)
+    end
+    
+    it 'requires a database' do
+      lambda{ Design.new(:name => @name) }.should raise_error(ArgumentError)
+    end
+    
+    it 'will set both the name and a database' do
+      @design.database.should == @db
+      @design.name.should == @name
+    end
+  end 
+    
+  describe 'crud operations' do
     it 'should build the correct uri' do
-      @design.uri.should == 'http://127.0.0.1:5984/ruby/_design/User'
+      @design.uri.should == 'http://127.0.0.1:5984/user/_design/User'
     end
       
     it 'should save' do 
       lambda{ @design.save! }.should_not raise_error
       lambda{ CouchSpring.get( @design.uri ) }.should_not raise_error
-    end  
+    end
+    
+    it 'get! should require a database' do
+      @design.save!
+      lambda{ Design.get!(:name => @design.name) }.should raise_error( ArgumentError )
+      Design.get!(:name => @design.name, :database => @db).should == @design.reload
+    end
+    
+    it 'get should require a database' do
+      @design.save!
+      lambda{ Design.get!(:name => @design.name) }.should raise_error( ArgumentError )
+      Design.get(:name => @design.name, :database => @db).should == @design.reload
+    end
+    
+    it 'delete! requires a database' do
+      @design.save!
+      @design.should_not be_new
+      lambda{ Design.delete!(:name => @design.name) }.should raise_error( ArgumentError )
+      lambda{ Design.delete!(:name => @design.name, :database => @db) }.should_not raise_error
+    end
+    
+    it 'delete! requires a database' do
+      @design.save!
+      @design.should_not be_new
+      lambda{ Design.delete!(:name => @design.name) }.should raise_error( ArgumentError )
+      Design.delete!(:name => @design.name, :database => @db).should_not == false
+    end
   end
   
-  it 'should get a design document by name' do
-    @design.save!  
-    lambda{ Design.get!( @name ) }.should_not raise_error
-  end  
+  describe 'database' do
+    it 'can set the database on the instance level' do
+      @design.database.should == @db
+      @design.database = Database.new(:new_foo)
+      @design.database.name.should == 'new_foo'
+      @design.database.new?.should == false
+    end
+  end
   
   describe 'views' do
     before(:each) do
@@ -111,9 +159,7 @@ describe CouchSpring::DesignDocument do
       
       it 'add! should save after adding the view' do
         @design.add! :name => 'my_attribute', :map => 'not the generic'
-        lambda{ Design.get( @design.name ) }.should_not raise_error
-        design = Design.get( @design.name )
-        design.views.keys.should include( 'my_attribute' )
+        @design.views.keys.should include( 'my_attribute' )
       end        
     end 
   
@@ -123,12 +169,9 @@ describe CouchSpring::DesignDocument do
   end
   
   describe 'query' do
-    before(:each) do
-      Document.database.delete rescue nil
-      Document.database.save!
-      
+    before do
       (1..10).each do |num| 
-        Document.create!( :index => num )
+        User.create!( :index => num )
       end 
       
       @design << :index
@@ -147,7 +190,7 @@ describe CouchSpring::DesignDocument do
     it 'should return the documents themselves by default' do
       @docs = @design.query( :index )
       @docs.first.keys.should include( 'index' )
-      @docs.first.class.should == Document
+      @docs.first.class.should == User
     end
     
     it 'should throw an reasonable error if the class corresponding to the _class attribute is not found' do 

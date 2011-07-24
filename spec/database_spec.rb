@@ -254,6 +254,18 @@ describe Database do
   end
   
   describe 'general management' do
+    describe 'class level #default' do
+      it 'news a default database' do
+        Database.default.should == Database.new
+      end
+      
+      it '! will create the default database if it does not exist' do
+        db = Database.default!
+        db.should == Database.new
+        db.new?.should == false
+      end
+    end
+    
     describe '#exist?' do
       it '#exists? should be false if the database doesn\'t yet exist in CouchSpring land' do
         db = Database.new(@name)
@@ -424,6 +436,8 @@ describe Database do
         end
       end
     end
+
+    # TODO: registry, to prevent hitting the couchdb server again and again
   end
     
   describe 'bulk operations' do 

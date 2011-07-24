@@ -11,17 +11,15 @@ module CouchSpring
     # Finds or creates design document based on
     # @api semi-private
     def self.design_document( reload=false )
-      @design_document = nil if reload
-      @design_document ||= get_design
-      @design_document.database = self.database  # todo: is this the right place
-      _add_class_query
+      @design_document = get_design if !@design_document || reload
       @design_document
     end
 
     def self.get_design
-      DesignDocument.get( design_name ) ||
-      DesignDocument.create(:name => design_name) ||
-      DesignDocument.create!(:name => design_name)
+      @design_document = DesignDocument.get( :name => design_name, :database => database ) ||
+        DesignDocument.create!(:name => design_name, :database => database)
+      _add_class_query  
+      @design_document  
     end
 
     def self._add_class_query
@@ -39,6 +37,5 @@ module CouchSpring
       self[:class_] = self.class.to_s
       super
     end
-
   end
 end

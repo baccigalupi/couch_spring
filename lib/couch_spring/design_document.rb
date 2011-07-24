@@ -1,6 +1,8 @@
 module CouchSpring
   class DesignDocument < DocumentBase
     class MissingClass < TypeError; end
+    
+    attr_reader :database
 
     # In the design document the name is the same as the id. That way initialization can
     # include a name parameter, which will change the id, and therefore the address of the
@@ -19,18 +21,29 @@ module CouchSpring
       self.id = ( n )
     end
 
-    def initialize( hash={} )
-      hash = Gnash.new( hash ) unless hash.empty?
-      self.id = hash.delete(:name) if hash[:name]
-      super( hash )
+    def initialize( opts )
+      opts = Gnash.new( opts )
+      raise ArgumentError, ":name and :database options required" unless opts[:name] && opts[:database]
+      self.id = opts.delete(:name)
+      self.database = opts.delete(:database)
+      super( opts )
     end
 
     # couchdb database url for the design document
     # @return [String] representing CouchSpring uri for document
     # @api public
     def uri
-      raise ArgumentError, 'DesignDocument must have a name' if name.nil? || name.empty?
       database.uri + '/_design/' + name
+    end
+
+    def self.uri_for( name )
+      "#{database.uri}/_design/#{CGI.escape(name)}"
+    end
+    
+    def database=(db)
+      raise ArgumentError, "database is nil" unless db
+      db.save if db.new?
+      @database = db
     end
 
     # Updates the id and rev after a design document is successfully saved. The _design/
@@ -41,11 +54,31 @@ module CouchSpring
       self.id     = result['id'].gsub(/\A_design\//, '')
       self.rev    = result['rev']
     end
-
-    def self.uri_for( name )
-      "#{database.uri}/_design/#{CGI.escape(name)}"
+    
+    def self.get!(opts={})
+      doc = new(opts)
+      doc.reload
     end
-
+    
+    def self.get(opts={})
+      doc = new(opts)
+      begin
+        doc.reload
+      rescue
+        false
+      end
+    end
+    
+    def self.delete(opts={})
+      doc = new(opts)
+      doc.delete
+    end
+    
+    def self.delete!(opts={})
+      doc = new(opts)
+      doc.delete!
+    end
+    
     # VIEWS --------------------
 
     # An array of indexed views for the design document.

@@ -199,6 +199,14 @@ module CouchSpring
         CouchSpring.delete( "#{uri}/#{CGI.escape( doc['id'])}?rev=#{doc['value']['rev']}" ) #rescue nil
       end
     end
+    
+    def self.default
+      new
+    end
+    
+    def self.default!
+      create!
+    end
 
     #
     # # BULK ACTIVITIES ------------------------------------------

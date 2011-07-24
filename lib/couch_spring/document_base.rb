@@ -100,7 +100,7 @@ module CouchSpring
       if superclass.respond_to?(:database)
         superclass.database   
       else
-        Database.create!(:server => CouchSpring.server)
+        Database.default!
       end  
     end   
     
@@ -285,7 +285,7 @@ module CouchSpring
       end
     end      
     
-    # Deletes an document from CouchSpring. The ! version will kill previous version of the document in addition to the current revision.
+    # Deletes a document from CouchSpring. The ! version will kill previous version of the document in addition to the current revision.
     #
     # @return [true, false] 
     #
